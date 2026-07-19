@@ -240,6 +240,7 @@ int main(int argc, char** argv) {
     {"llama3-8b", "Llama 3 8B", "https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf", "Meta-Llama-3-8B-Instruct-Q4_K_M.gguf"},
     {"gemma12b", "Gemma 2 9B", "https://huggingface.co/bartowski/gemma-2-9b-it-GGUF/resolve/main/gemma-2-9b-it-Q4_K_M.gguf", "gemma-2-9b-it-Q4_K_M.gguf"},
     {"gemma26b", "Gemma 2 27B", "https://huggingface.co/bartowski/gemma-2-27b-it-GGUF/resolve/main/gemma-2-27b-it-Q4_K_M.gguf", "gemma-2-27b-it-Q4_K_M.gguf"},
+    {"gemma4-26b", "Gemma 4 26B", "https://huggingface.co/bartowski/gemma-4-26b-it-GGUF/resolve/main/gemma-4-26b-it-Q4_K_M.gguf", "gemma-4-26b-it-Q4_K_M.gguf"},
     {"socrates-debug-profiler", "Profiler", "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf", "Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"},
   };
   for (auto& m : models) {

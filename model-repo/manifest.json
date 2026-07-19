@@ -582,6 +582,97 @@
       }
     },
     {
+      "model_id": "gemma4-26b",
+      "family": "gemma4",
+      "display_name": "Gemma 4 26B",
+      "total_layers": 46,
+      "total_params": "26B",
+      "size_gb_int4": 15.0,
+      "size_gb_fp16": 52.0,
+      "context_window_max": 8192,
+      "default_context": 4096,
+      "tier": "tight",
+      "shards": [
+        {
+          "shard_id": "gemma4-26b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 15800000000,
+          "layers": [
+            0,
+            46
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./gemma-4-26b-it-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 15800000000
+          }
+        }
+      ],
+      "pipelines": {
+        "1m2w_tight": {
+          "min_total_ram_gb": 36,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [0, 8],
+              "min_ram_gb": 2,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [8, 27],
+              "min_ram_gb": 6,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [27, 46],
+              "min_ram_gb": 6,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "tight_4node": {
+          "min_total_ram_gb": 36,
+          "min_devices": 4,
+          "stages": [
+            {
+              "layers": [0, 8],
+              "min_ram_gb": 2,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [8, 21],
+              "min_ram_gb": 4,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [21, 34],
+              "min_ram_gb": 4,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [34, 46],
+              "min_ram_gb": 4,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
       "model_id": "llama3-8b",
       "family": "llama3",
       "display_name": "Llama 3 8B",
