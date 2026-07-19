@@ -2,6 +2,13 @@
 // Real TLS transport with streaming, deadlines, keepalive, and backpressure.
 // Uses OpenSSL for mTLS. Falls back to gRPC when generated stubs are available.
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-int-conversion"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include "socrates/transport/transport.h"
 #include "socrates/transport/tensor_codec.h"
 
@@ -832,3 +839,7 @@ std::unique_ptr<Transport> make_grpc_transport() {
 }
 
 }  // namespace socrates::transport
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
