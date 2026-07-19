@@ -204,7 +204,12 @@ static void http_server() {
 }
 
 // ── Main ────────────────────────────────────────────────────────────────
-int main() {
+int main(int argc, char** argv) {
+  bool no_discovery = false;
+  for (int i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "--no-discovery") == 0) no_discovery = true;
+  }
+
   printf("=== Socrates Master ===\n");
   printf("Version: %s\n\n", socrates_version());
 
@@ -222,7 +227,7 @@ int main() {
   cfg.max_batch_size = 4;
   cfg.batch_timeout_ms = 5;
   cfg.long_context_threshold = 4096;
-  cfg.skip_discovery = false;
+  cfg.skip_discovery = no_discovery;
 
   std::filesystem::create_directories("/tmp/socrates-master/models");
 
@@ -255,7 +260,7 @@ int main() {
   if (err.code != 0) { printf("Start failed\n"); return 1; }
 
   printf("Runtime started as master.\n");
-  socrates_join_cluster(g_rt);
+  // socrates_join_cluster(g_rt);  // TODO: fix deadlock, then re-enable
 
   // Start HTTP server (blocks until shutdown)
   http_server();

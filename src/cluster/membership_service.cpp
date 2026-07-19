@@ -87,8 +87,6 @@ class MembershipServiceImpl final : public MembershipService {
 
   void update_model_presence(const std::vector<ModelPresence>& models) override {
     std::lock_guard lock(mutex_);
-    // Update models for all members (in production, scoped to local node).
-    // The caller is responsible for providing the local node's models.
     for (auto& m : members_) {
       m.models = models;
     }
@@ -160,54 +158,35 @@ class MembershipServiceImpl final : public MembershipService {
 
   void liveness_loop() {
     while (liveness_active_) {
-      std::this_thread::sleep_for(std::chrono::seconds(5));
+      std::this_thread::sleep_for(std::chrono::seconds(2));
       if (!liveness_active_) break;
 
       std::lock_guard lock(mutex_);
-      auto now = std::chrono::system_clock::now();
-      bool changed = false;
+      if (!running_) continue;
 
+      auto now = std::chrono::system_clock::now();
       for (auto& m : members_) {
         if (m.state == MemberState::kAlive) {
           auto age = std::chrono::duration_cast<std::chrono::seconds>(
                          now - m.last_seen)
                          .count();
-          if (age > 30) {
+          if (age > 10) {
             m.state = MemberState::kSuspect;
-            changed = true;
-          }
-        } else if (m.state == MemberState::kSuspect) {
-          auto age = std::chrono::duration_cast<std::chrono::seconds>(
-                         now - m.last_seen)
-                         .count();
-          if (age > 60) {
-            m.state = MemberState::kRemoved;
-            changed = true;
+            snapshot_revision_++;
           }
         }
-      }
-
-      // Purge removed members
-      members_.erase(
-          std::remove_if(members_.begin(), members_.end(),
-                         [](const Member& m) {
-                           return m.state == MemberState::kRemoved;
-                         }),
-          members_.end());
-
-      if (changed) {
-        snapshot_revision_++;
-        if (callback_) callback_(build_snapshot());
       }
     }
   }
 
   mutable std::mutex mutex_;
-  MemberVec members_;
-  std::uint64_t snapshot_revision_{0};
-  bool running_{false};
   security::IdentityProvider* identity_provider_{nullptr};
   MembershipCallback callback_;
+  bool running_{false};
+  std::vector<Member> members_;
+  std::uint64_t snapshot_revision_{0};
+
+  // Liveness
   std::atomic<bool> liveness_active_{false};
   std::thread liveness_worker_;
 };

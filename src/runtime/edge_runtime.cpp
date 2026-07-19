@@ -70,15 +70,14 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
           if (callback_) {
             RuntimeSnapshot rs;
             rs.state = state_;
-            {
-              std::lock_guard lk(mutex_);
-              rs.membership = membership_->snapshot();
-              rs.leadership = election_ ? election_->current()
-                                        : cluster::LeadershipState{};
-              rs.active_plan = current_plan_;
-              rs.local_models = local_models_;
-              rs.local_role = local_role_;
-            }
+            // NOTE: no lock here — start() already holds mutex_, and
+            // re-acquiring it in the membership callback causes deadlock.
+            rs.membership = snap;
+            rs.leadership = election_ ? election_->current()
+                                      : cluster::LeadershipState{};
+            rs.active_plan = current_plan_;
+            rs.local_models = local_models_;
+            rs.local_role = local_role_;
             callback_(rs);
           }
         });
@@ -169,7 +168,9 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
                 .with_term(ls.fence.term)
                 .info("leader elected");
 
-            if (is_local_leader()) {
+            // Compare directly with ls parameter, not is_local_leader()
+            // which would call election_->current() — deadlock inside callback.
+            if (ls.leader_id->value == local_identity_.node_id.value) {
               schedule_plan();
             }
           }
