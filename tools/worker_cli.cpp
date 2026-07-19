@@ -122,6 +122,8 @@ static std::string wait_for_master() {
   return "";
 }
 
+static void show_status();
+
 static void join_cluster() {
   printf("Joining cluster as participant...\n");
   socrates_error_t err = socrates_join_cluster(g_rt);
@@ -142,12 +144,9 @@ static void show_status() {
     size_t count = 0, pos = 0;
     while ((pos = s.find("\"node_id\":", pos)) != std::string::npos) { ++count; ++pos; }
     printf("Devices in cluster: %zu\n", count);
-    print_json(snap);
-  }
-  printf("\nModel download progress:\n");
-  char* prog = socrates_model_progress_json(g_rt);
-  print_json(prog);
-  printf("\n");
+      print_json(snap);
+    }
+    printf("\n");
 }
 
 int main(int argc, char** argv) {
@@ -177,7 +176,7 @@ int main(int argc, char** argv) {
   cfg.trust_mode = 0;
   cfg.tracing_enabled = false;
   cfg.start_as_leech = true;
-  cfg.production_mode = true;
+  cfg.production_mode = false;
   cfg.batching_mode = 0;
   cfg.max_batch_size = 4;
   cfg.batch_timeout_ms = 5;
@@ -191,12 +190,14 @@ int main(int argc, char** argv) {
   printf("Runtime started (leech mode).\n");
 
   // 3. Wait for master or go standalone
-  if (!g_standalone) {
+  if (!g_standalone && !g_no_discovery) {
     std::string master = wait_for_master();
     if (master.empty()) { socrates_shutdown(g_rt); return 0; }
-  } else {
+  } else if (g_standalone) {
     printf("Standalone mode — joining cluster immediately.\n");
     join_cluster();
+  } else {
+    printf("No-discovery mode — skipping master wait. Press 'j' to join.\n");
   }
 
   // 4. CLI

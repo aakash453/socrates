@@ -1,16 +1,27 @@
 #include "socrates/discovery/discovery_service.h"
 
-#include <arpa/inet.h>
 #include <atomic>
 #include <chrono>
 #include <cstring>
 #include <mutex>
-#include <netinet/in.h>
 #include <string>
-#include <sys/socket.h>
 #include <thread>
-#include <unistd.h>
 #include <vector>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+#define close closesocket
+typedef int ssize_t;
+#define SOCK_VALID(s) ((s) != INVALID_SOCKET)
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#define SOCK_VALID(s) ((s) >= 0)
+#endif
 
 namespace socrates::discovery {
 
@@ -28,26 +39,33 @@ class UdpBroadcastDiscovery final : public DiscoveryService {
     running_ = true;
     port_ = config_.udp_port;
 
+#ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
+
     // Create send socket (broadcast-enabled)
     send_sock_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (send_sock_ >= 0) {
+    if (SOCK_VALID(send_sock_)) {
       int on = 1;
-      setsockopt(send_sock_, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on));
+      setsockopt(send_sock_, SOL_SOCKET, SO_BROADCAST, (const char*)&on, sizeof(on));
     }
 
     // Create recv socket (bind to port)
     recv_sock_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (recv_sock_ >= 0) {
+    if (SOCK_VALID(recv_sock_)) {
       int on = 1;
-      setsockopt(recv_sock_, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+      setsockopt(recv_sock_, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
+#ifndef _WIN32
       setsockopt(recv_sock_, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
+#endif
       struct sockaddr_in addr{};
       addr.sin_family = AF_INET;
       addr.sin_addr.s_addr = INADDR_ANY;
       addr.sin_port = htons(port_);
       if (bind(recv_sock_, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
         close(recv_sock_);
-        recv_sock_ = -1;
+        recv_sock_ = INVALID_SOCKET;
       }
     }
 
@@ -95,15 +113,18 @@ class UdpBroadcastDiscovery final : public DiscoveryService {
 
   void stop() noexcept override {
     running_ = false;
-    if (send_sock_ >= 0) { close(send_sock_); send_sock_ = -1; }
-    if (recv_sock_ >= 0) { close(recv_sock_); recv_sock_ = -1; }
+    if (SOCK_VALID(send_sock_)) { close(send_sock_); send_sock_ = INVALID_SOCKET; }
+    if (SOCK_VALID(recv_sock_)) { close(recv_sock_); recv_sock_ = INVALID_SOCKET; }
     if (send_thread_.joinable()) send_thread_.join();
     if (recv_thread_.joinable()) recv_thread_.join();
+#ifdef _WIN32
+    WSACleanup();
+#endif
   }
 
  private:
   void send_announcement() {
-    if (send_sock_ < 0) return;
+    if (!SOCK_VALID(send_sock_)) return;
 
     // Serialize peer advertisement to compact JSON
     std::string json;
@@ -153,8 +174,13 @@ class UdpBroadcastDiscovery final : public DiscoveryService {
   std::uint16_t port_{9876};
   bool running_{false};
 
+#ifdef _WIN32
+  SOCKET send_sock_{INVALID_SOCKET};
+  SOCKET recv_sock_{INVALID_SOCKET};
+#else
   int send_sock_{-1};
   int recv_sock_{-1};
+#endif
   std::thread send_thread_;
   std::thread recv_thread_;
 };

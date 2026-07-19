@@ -60,6 +60,9 @@ class MembershipService {
   /// Report which model shards the local node has downloaded.
   virtual void update_model_presence(const std::vector<ModelPresence>& models) = 0;
 
+  /// Update the role of the local node (e.g. leech → participant).
+  virtual void update_local_role(NodeRole role) = 0;
+
   virtual void promote_joining_members() = 0;
 
   [[nodiscard]] virtual MembershipSnapshot snapshot() const = 0;

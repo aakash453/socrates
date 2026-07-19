@@ -36,6 +36,10 @@ class MembershipServiceImpl final : public MembershipService {
     }
     identity_provider_ = &identity_provider;
     callback_ = std::move(callback);
+    auto id_result = identity_provider_->local_identity();
+    if (id_result.is_ok()) {
+      local_node_id_ = id_result.take_value().node_id;
+    }
     running_ = true;
   }
 
@@ -130,6 +134,16 @@ class MembershipServiceImpl final : public MembershipService {
     }
   }
 
+  void update_local_role(NodeRole role) override {
+    std::lock_guard lock(mutex_);
+    auto it = find_member(local_node_id_);
+    if (it != members_.end() && it->role != role) {
+      it->role = role;
+      snapshot_revision_++;
+      emit_snapshot();
+    }
+  }
+
  private:
   using MemberVec = std::vector<Member>;
 
@@ -185,6 +199,7 @@ class MembershipServiceImpl final : public MembershipService {
   bool running_{false};
   std::vector<Member> members_;
   std::uint64_t snapshot_revision_{0};
+  NodeId local_node_id_;
 
   // Liveness
   std::atomic<bool> liveness_active_{false};

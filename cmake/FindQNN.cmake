@@ -25,6 +25,7 @@ find_library(QNN_HTP_LIBRARY
   NAMES QnnHtp QnnHtpV75 QnnHtpV73
   HINTS "${QNN_SDK_ROOT}/lib/aarch64-android"
         "${QNN_SDK_ROOT}/lib/arm64x-windows-msvc"
+        "${QNN_SDK_ROOT}/lib/x86_64-windows-msvc"
         "${QNN_SDK_ROOT}/lib"
   NO_DEFAULT_PATH)
 
@@ -32,6 +33,7 @@ find_library(QNN_SYSTEM_LIBRARY
   NAMES QnnSystem
   HINTS "${QNN_SDK_ROOT}/lib/aarch64-android"
         "${QNN_SDK_ROOT}/lib/arm64x-windows-msvc"
+        "${QNN_SDK_ROOT}/lib/x86_64-windows-msvc"
         "${QNN_SDK_ROOT}/lib"
   NO_DEFAULT_PATH)
 
@@ -39,6 +41,7 @@ find_library(QNN_CPU_LIBRARY
   NAMES QnnCpu QnnCPU
   HINTS "${QNN_SDK_ROOT}/lib/aarch64-android"
         "${QNN_SDK_ROOT}/lib/arm64x-windows-msvc"
+        "${QNN_SDK_ROOT}/lib/x86_64-windows-msvc"
         "${QNN_SDK_ROOT}/lib"
   NO_DEFAULT_PATH)
 

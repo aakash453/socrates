@@ -344,6 +344,7 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
 
     if (membership_) {
       membership_->update_model_presence(models);
+      membership_->update_local_role(cluster::NodeRole::kParticipant);
     }
 
     local_models_ = models;
@@ -535,7 +536,7 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
           }
 
           std::uint32_t layers_per = input.total_layers /
-              std::max<std::size_t>(input.shard_options.size(), 1);
+              std::max(static_cast<std::uint32_t>(input.shard_options.size()), 1u);
           std::uint32_t offset = 0;
           for (auto& opt : input.shard_options) {
             opt.layers = LayerRange{offset, offset + layers_per};

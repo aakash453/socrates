@@ -47,19 +47,36 @@ build_backend_fallback_chain(inference::BackendRegistry& registry) {
   log.info("backend chain: QNN (Hexagon NPU) -> llama.cpp (CPU)");
 
 #elif defined(_WIN32) && defined(_M_ARM64)
-  // Windows ARM64 (Snapdragon X Elite): LiteRT → QNN → llama.cpp
+  // Windows ARM64 (Snapdragon X Elite): QNN → LiteRT → ExecuTorch CPU
+  #if defined(SOCRATES_HAS_QNN)
+    auto qnn = std::shared_ptr<inference::InferenceBackend>(
+        inference::make_executorch_qnn_backend());
+    registry.register_backend(BackendKind::kExecuTorchQnn, qnn);
+    chain.push_back(qnn);
+  #endif
   #if defined(SOCRATES_ENABLE_LITERT)
     extern std::unique_ptr<inference::InferenceBackend> make_litert_backend();
     auto litert = std::shared_ptr<inference::InferenceBackend>(make_litert_backend());
     registry.register_backend(BackendKind::kLiteRt, litert);
     chain.push_back(litert);
   #endif
-  log.info("backend chain: LiteRT -> QNN (NPU) -> llama.cpp (CPU)");
+  log.info("backend chain: QNN (NPU) -> LiteRT (DirectML) -> ExecuTorch CPU");
+
+#elif defined(_WIN32) && defined(_M_AMD64)
+  // Windows x64: QNN (CPU backend) → llama.cpp (CPU)
+  #if defined(SOCRATES_HAS_QNN)
+    auto qnn = std::shared_ptr<inference::InferenceBackend>(
+        inference::make_executorch_qnn_backend());
+    registry.register_backend(BackendKind::kExecuTorchQnn, qnn);
+    chain.push_back(qnn);
+  #endif
+  log.info("backend chain: QNN (CPU) -> llama.cpp (CPU)");
 
 #else
   log.info("backend chain: llama.cpp (CPU) -> ExecuTorch CPU");
 #endif
 
+#if SOCRATES_ENABLE_LLAMA
   // Always add llama.cpp CPU as fallback
   {
     auto llama = std::shared_ptr<inference::InferenceBackend>(
@@ -67,6 +84,7 @@ build_backend_fallback_chain(inference::BackendRegistry& registry) {
     registry.register_backend(BackendKind::kLlamaCpp, llama);
     chain.push_back(llama);
   }
+#endif
 
   // ExecuTorch CPU as last-resort
   {
