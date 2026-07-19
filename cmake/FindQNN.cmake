@@ -6,7 +6,7 @@
 # Provides:
 #   QNN_FOUND           — TRUE if SDK found
 #   QNN_INCLUDE_DIRS    — QNN include directories
-#   QNN_LIBRARIES       — QNN libraries (QnnHtp, QnnSystem, QnnCPU)
+#   QNN_LIBRARIES       — QNN libraries (QnnHtp, QnnSystem, QnnCpu)
 #   QNN_VERSION         — detected SDK version
 
 if(NOT DEFINED QNN_SDK_ROOT)
@@ -36,16 +36,26 @@ find_library(QNN_SYSTEM_LIBRARY
   NO_DEFAULT_PATH)
 
 find_library(QNN_CPU_LIBRARY
-  NAMES QnnCPU
+  NAMES QnnCpu QnnCPU
   HINTS "${QNN_SDK_ROOT}/lib/aarch64-android"
         "${QNN_SDK_ROOT}/lib/arm64x-windows-msvc"
         "${QNN_SDK_ROOT}/lib"
   NO_DEFAULT_PATH)
 
-if(QNN_HTP_LIBRARY AND QNN_SYSTEM_LIBRARY)
-  set(QNN_LIBRARIES ${QNN_HTP_LIBRARY} ${QNN_SYSTEM_LIBRARY})
+if(QNN_HTP_LIBRARY)
+  set(QNN_LIBRARIES ${QNN_HTP_LIBRARY})
+  # Only add .lib import libraries to the linker, never .dll files
+  if(QNN_SYSTEM_LIBRARY)
+    get_filename_component(_qnn_sys_ext "${QNN_SYSTEM_LIBRARY}" LAST_EXT)
+    if(_qnn_sys_ext STREQUAL ".lib")
+      list(APPEND QNN_LIBRARIES ${QNN_SYSTEM_LIBRARY})
+    endif()
+  endif()
   if(QNN_CPU_LIBRARY)
-    list(APPEND QNN_LIBRARIES ${QNN_CPU_LIBRARY})
+    get_filename_component(_qnn_cpu_ext "${QNN_CPU_LIBRARY}" LAST_EXT)
+    if(_qnn_cpu_ext STREQUAL ".lib")
+      list(APPEND QNN_LIBRARIES ${QNN_CPU_LIBRARY})
+    endif()
   endif()
 
   # Detect version from SDK directory name or version.txt
@@ -70,5 +80,5 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QNN
-  REQUIRED_VARS QNN_SDK_ROOT QNN_INCLUDE_DIRS QNN_HTP_LIBRARY QNN_SYSTEM_LIBRARY
+  REQUIRED_VARS QNN_SDK_ROOT QNN_INCLUDE_DIRS QNN_HTP_LIBRARY
   VERSION_VAR QNN_VERSION)

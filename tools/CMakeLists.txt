@@ -19,8 +19,10 @@ target_link_libraries(socrates-worker PRIVATE socrates)
 target_include_directories(socrates-worker PRIVATE ${CMAKE_SOURCE_DIR}/bindings/c)
 set_project_warnings(socrates-worker)
 
+if(APPLE OR (UNIX AND NOT ANDROID))
 add_executable(socrates-master)
 target_sources(socrates-master PRIVATE master_cli.cpp)
 target_link_libraries(socrates-master PRIVATE socrates)
 target_include_directories(socrates-master PRIVATE ${CMAKE_SOURCE_DIR}/bindings/c)
 # set_project_warnings(socrates-master)  -- raw sockets, sign warnings expected
+endif()

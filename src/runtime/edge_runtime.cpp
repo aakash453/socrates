@@ -85,7 +85,7 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
     log.info("membership started");
 
     // 3. Discovery
-    discovery_ = discovery::make_mdns_discovery();
+    discovery_ = discovery::make_coordinated_discovery();
     discovery::DiscoveryConfig dcfg;
     if (config_.skip_discovery) {
       dcfg.fallback_order = {discovery::DiscoveryMethod::kUdpBroadcast,

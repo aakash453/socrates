@@ -129,7 +129,7 @@ else()
     find_package(spdlog CONFIG REQUIRED)
     find_package(nlohmann_json CONFIG REQUIRED)
     find_package(tl-expected CONFIG REQUIRED)
-    find_package(SQLite3 REQUIRED)
+    find_package(SQLite3 CONFIG REQUIRED)
 endif()
 
 if(SOCRATES_ENABLE_TESTS)
