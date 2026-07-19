@@ -125,19 +125,12 @@ static void handle_client(int fd) {
     printf("[generate] model=%s prompt=\"%s\" max=%d\n",
            model_id.c_str(), prompt.c_str(), max_tokens);
 
-    // SSE stream
-    std::string header = "HTTP/1.1 200 OK\r\n"
-                         "Content-Type: text/event-stream\r\n"
-                         "Access-Control-Allow-Origin: *\r\n"
-                         "Cache-Control: no-cache\r\n"
-                         "Connection: keep-alive\r\n\r\n";
-    write(fd, header.c_str(), header.size());
-
     // Use socrates_generate with a callback that sends SSE
     struct Ctx { int fd; };
     Ctx ctx{fd};
 
-    socrates_generate(g_rt, "http-req", prompt.c_str(), static_cast<uint32_t>(max_tokens), 0.7f, 2048,
+    socrates_error_t gen_err = socrates_generate(g_rt, "http-req",
+        prompt.c_str(), static_cast<uint32_t>(max_tokens), 0.7f, 2048,
       [](const socrates_stream_event_t* ev, void* data) {
         auto* c = static_cast<Ctx*>(data);
         if (!ev) return;
@@ -152,6 +145,32 @@ static void handle_client(int fd) {
           send_sse(c->fd, "{\"error\":\"generation failed\"}");
         }
       }, &ctx, nullptr);
+
+    if (gen_err.code != 0) {
+      // Send error as SSE then close
+      std::string header = "HTTP/1.1 200 OK\r\n"
+                           "Content-Type: text/event-stream\r\n"
+                           "Access-Control-Allow-Origin: *\r\n"
+                           "Cache-Control: no-cache\r\n"
+                           "Connection: close\r\n\r\n";
+      write(fd, header.c_str(), header.size());
+      char buf[512];
+      const char* msg = gen_err.message ? gen_err.message : "unknown error";
+      snprintf(buf, sizeof(buf),
+               "{\"error\":\"[%d] %s\"}", gen_err.code, msg);
+      send_sse(fd, buf);
+      send_sse(fd, "{\"done\":true}");
+      close(fd);
+      return;
+    }
+
+    // SSE stream
+    std::string header = "HTTP/1.1 200 OK\r\n"
+                         "Content-Type: text/event-stream\r\n"
+                         "Access-Control-Allow-Origin: *\r\n"
+                         "Cache-Control: no-cache\r\n"
+                         "Connection: keep-alive\r\n\r\n";
+    write(fd, header.c_str(), header.size());
   }
   // ── Route: POST /cancel ─────────────────────────────────────────────
   else if (path == "/cancel" && method == "POST") {
