@@ -53,8 +53,8 @@ socrates_error_t socrates_shutdown(socrates_runtime_t runtime);
 const char* socrates_version(void);
 
 socrates_error_t socrates_generate(socrates_runtime_t runtime,
-    const char* request_id, const char* prompt, uint32_t max_tokens,
-    float temperature, uint32_t context_window,
+    const char* request_id, const char* model_id, const char* prompt,
+    uint32_t max_tokens, float temperature, uint32_t context_window,
     socrates_stream_callback_t callback, void* user_data,
     socrates_handle_t* out_handle);
 

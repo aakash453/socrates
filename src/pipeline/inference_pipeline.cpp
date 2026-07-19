@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <climits>
 #include <cmath>
@@ -814,9 +815,10 @@ class InferencePipelineImpl final : public InferencePipeline {
     const auto& request = state->request;
 
     // Find a GGUF file — try master path, then worker path.
-    // Pick the smallest real file (skip stubs < 1MB).
+    // Match by model_id if possible, otherwise pick smallest real file.
     std::string model_path;
     std::uintmax_t best_size = UINTMAX_MAX;
+    std::string model_id_str = request.model_id.value;
     for (const auto& dir : {"/tmp/socrates-master/models", "/tmp/socrates-worker/models"}) {
       std::error_code ec;
       if (!std::filesystem::exists(dir, ec)) continue;
@@ -824,8 +826,46 @@ class InferencePipelineImpl final : public InferencePipeline {
         if (entry.path().extension() != ".gguf") continue;
         auto sz = entry.file_size(ec);
         if (ec || sz < 1000000) continue;  // skip stubs
+        std::string fname = entry.path().filename().string();
+        // Try to match model_id to filename
+        if (!model_id_str.empty()) {
+          std::string lower = fname;
+          std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+          std::string lower_id = model_id_str;
+          std::transform(lower_id.begin(), lower_id.end(), lower_id.begin(), ::tolower);
+          if (lower_id == "llama3-8b" && lower.find("llama-3-8b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "qwen3-1.8b" && lower.find("1.5b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "qwen3-4b" && lower.find("3b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "qwen3-6b" && lower.find("7b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "gemma12b" && lower.find("9b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "gemma26b" && lower.find("27b") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+          if (lower_id == "gemma4-26b" && lower.find("gemma-4") != std::string::npos) {
+            model_path = entry.path().string();
+            break;
+          }
+        }
+        // Fallback: pick smallest
         if (sz < best_size) {
           best_size = sz;
+          if (model_path.empty() || !model_id_str.empty()) continue; // prefer match
           model_path = entry.path().string();
         }
       }

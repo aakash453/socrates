@@ -140,6 +140,7 @@ socrates_error_t socrates_start(socrates_runtime_t runtime) {
 
 socrates_error_t socrates_generate(socrates_runtime_t runtime,
                                    const char* request_id,
+                                   const char* model_id,
                                    const char* prompt, uint32_t max_tokens,
                                    float temperature,
                                    uint32_t context_window,
@@ -152,7 +153,7 @@ socrates_error_t socrates_generate(socrates_runtime_t runtime,
   socrates::pipeline::InferenceRequest req;
   req.request_id = socrates::RequestId{request_id ? request_id : "req"};
   req.session_id = socrates::SessionId{"session-1"};
-  req.model_id = socrates::ModelId{"default-model"};
+  req.model_id = socrates::ModelId{model_id ? model_id : "default-model"};
   req.prompt = prompt ? prompt : "";
   req.generation.maximum_new_tokens = max_tokens;
   req.generation.temperature = temperature;

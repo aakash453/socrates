@@ -138,6 +138,7 @@ static void handle_client(int fd) {
     auto* ctx = new Ctx{fd, new std::atomic<bool>(false)};
 
     socrates_error_t gen_err = socrates_generate(g_rt, "http-req",
+        model_id.c_str(),
         prompt.c_str(), static_cast<uint32_t>(max_tokens), 0.7f, 2048,
       [](const socrates_stream_event_t* ev, void* data) {
         auto* c = static_cast<Ctx*>(data);
