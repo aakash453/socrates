@@ -230,6 +230,12 @@ if(SOCRATES_HAS_LLAMA_CPP)
     target_link_libraries(socrates PRIVATE ${LLAMA_LIBRARY})
     target_include_directories(socrates PRIVATE ${LLAMA_INCLUDE_DIR})
     target_compile_definitions(socrates PRIVATE SOCRATES_HAS_LLAMA_CPP=1)
+    # Newer llama.cpp requires ggml for backend loading
+    find_library(GGML_LIBRARY ggml)
+    if(GGML_LIBRARY)
+        target_link_libraries(socrates PRIVATE ${GGML_LIBRARY})
+        message(STATUS "ggml linked for backend loading")
+    endif()
 endif()
 
 if(SOCRATES_ENABLE_QNN AND QNN_FOUND)

@@ -3,8 +3,12 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <climits>
+#include <cmath>
 #include <condition_variable>
+#include <cstdint>
 #include <deque>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -12,6 +16,10 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+
+#if __has_include(<llama.h>)
+#include <llama.h>
+#endif
 
 #include "socrates/model/model_manager.h"
 #include "socrates/persistence/assignment_store.h"
@@ -796,16 +804,168 @@ class InferencePipelineImpl final : public InferencePipeline {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
-  //  Dispatcher: simulated vs. distributed
+  //  LOCAL: real single-node inference (no transport needed)
+  // ═══════════════════════════════════════════════════════════════════════
+
+#if SOCRATES_HAS_LLAMA_CPP
+  void run_generation_local(std::shared_ptr<ActiveRequest> state,
+                             std::shared_ptr<CancellationToken> cancel_token) {
+    const auto& request = state->request;
+
+    // Find a GGUF file — try master path, then worker path.
+    // Pick the smallest real file (skip stubs < 1MB).
+    std::string model_path;
+    std::uintmax_t best_size = UINTMAX_MAX;
+    for (const auto& dir : {"/tmp/socrates-master/models", "/tmp/socrates-worker/models"}) {
+      std::error_code ec;
+      if (!std::filesystem::exists(dir, ec)) continue;
+      for (const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
+        if (entry.path().extension() != ".gguf") continue;
+        auto sz = entry.file_size(ec);
+        if (ec || sz < 1000000) continue;  // skip stubs
+        if (sz < best_size) {
+          best_size = sz;
+          model_path = entry.path().string();
+        }
+      }
+      if (!model_path.empty()) break;
+    }
+
+    if (model_path.empty()) {
+      emit_terminal(state, false);
+      return;
+    }
+
+    // Initialize llama backend
+    llama_backend_init();
+    ggml_backend_load_all();
+    llama_model_params model_params = llama_model_default_params();
+    model_params.n_gpu_layers = 0;
+    model_params.use_mmap = true;
+
+    llama_model* model = llama_model_load_from_file(model_path.c_str(), model_params);
+    if (!model) {
+      emit_terminal(state, false);
+      return;
+    }
+
+    llama_context_params ctx_params = llama_context_default_params();
+    ctx_params.n_ctx = request.generation.context_window;
+    ctx_params.n_batch = 512;
+    ctx_params.n_threads = 4;
+
+    llama_context* ctx = llama_init_from_model(model, ctx_params);
+    if (!ctx) {
+      llama_model_free(model);
+      emit_terminal(state, false);
+      return;
+    }
+
+    const llama_vocab* vocab = llama_model_get_vocab(model);
+    int n_vocab = llama_vocab_n_tokens(vocab);
+
+    // Tokenize the prompt
+    std::vector<llama_token> prompt_tokens(request.prompt.size() + 4);
+    int n_tokens = llama_tokenize(vocab,
+        request.prompt.c_str(), static_cast<int>(request.prompt.size()),
+        prompt_tokens.data(), static_cast<int>(prompt_tokens.size()),
+        true, true);
+    // llama_tokenize may return negative if buffer too small
+    if (n_tokens < 0) {
+      prompt_tokens.resize(static_cast<size_t>(-n_tokens));
+      n_tokens = llama_tokenize(vocab,
+          request.prompt.c_str(), static_cast<int>(request.prompt.size()),
+          prompt_tokens.data(), static_cast<int>(prompt_tokens.size()),
+          true, true);
+    }
+    prompt_tokens.resize(static_cast<size_t>(n_tokens));
+
+    // Eval the prompt
+    llama_pos pos = 0;
+    for (size_t i = 0; i < prompt_tokens.size(); i += static_cast<size_t>(ctx_params.n_batch)) {
+      size_t n = std::min(static_cast<size_t>(ctx_params.n_batch),
+                           prompt_tokens.size() - i);
+      llama_batch batch = llama_batch_init(static_cast<int32_t>(n), 0, 1);
+      for (size_t j = 0; j < n; ++j) {
+        batch.token[j] = prompt_tokens[i + j];
+        batch.pos[j] = pos++;
+        batch.n_seq_id[j] = 1;
+        batch.seq_id[j][0] = 0;
+        batch.logits[j] = (j == n - 1);
+      }
+      if (llama_decode(ctx, batch) != 0) {
+        llama_batch_free(batch);
+        llama_free(ctx);
+        llama_model_free(model);
+        emit_terminal(state, false);
+        return;
+      }
+      llama_batch_free(batch);
+    }
+
+    // Generate tokens
+    for (std::uint64_t i = 0;
+         i < request.generation.maximum_new_tokens && state->active; ++i) {
+      if (cancel_token->stop_requested() || !state->active) break;
+
+      auto* logits = llama_get_logits_ith(ctx, -1);
+      if (!logits) break;
+
+      // Greedy sampling
+      llama_token next_token = 0;
+      float max_logit = -INFINITY;
+      for (int v = 0; v < n_vocab; ++v) {
+        if (logits[v] > max_logit) {
+          max_logit = logits[v];
+          next_token = v;
+        }
+      }
+
+      if (llama_vocab_is_eog(vocab, next_token)) break;
+
+      // Detokenize
+      char buf[256];
+      int n_chars = llama_token_to_piece(vocab, next_token, buf, sizeof(buf), 0, true);
+      if (n_chars > 0) {
+        std::string piece(buf, static_cast<size_t>(n_chars));
+        emit_token(state, i, next_token, piece);
+      }
+
+      // Eval the new token with correct position
+      llama_batch batch = llama_batch_init(1, 0, 1);
+      batch.token[0] = next_token;
+      batch.pos[0] = pos++;
+      batch.n_seq_id[0] = 1;
+      batch.seq_id[0][0] = 0;
+      batch.logits[0] = true;
+      if (llama_decode(ctx, batch) != 0) {
+        llama_batch_free(batch);
+        break;
+      }
+      llama_batch_free(batch);
+    }
+
+    llama_free(ctx);
+    llama_model_free(model);
+    emit_terminal(state, state->active);
+  }
+#endif
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Dispatcher: local → simulated → distributed
   // ═══════════════════════════════════════════════════════════════════════
 
   void run_generation(std::shared_ptr<ActiveRequest> state,
                       std::shared_ptr<CancellationToken> cancel_token) {
+#if SOCRATES_HAS_LLAMA_CPP
+    run_generation_local(state, cancel_token);
+#else
     if (has_distributed_capability()) {
       run_generation_distributed(state, cancel_token);
     } else {
       run_generation_simulated(state, cancel_token);
     }
+#endif
   }
 
   // ── Members ───────────────────────────────────────────────────────────
