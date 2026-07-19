@@ -7,6 +7,7 @@
 #include <cmath>
 #include <condition_variable>
 #include <cstdint>
+#include <cstdio>
 #include <deque>
 #include <filesystem>
 #include <memory>
@@ -840,7 +841,7 @@ class InferencePipelineImpl final : public InferencePipeline {
     llama_backend_init();
     ggml_backend_load_all();
     llama_model_params model_params = llama_model_default_params();
-    model_params.n_gpu_layers = 0;
+    model_params.n_gpu_layers = 99;  // offload all layers to Metal GPU
     model_params.use_mmap = true;
 
     llama_model* model = llama_model_load_from_file(model_path.c_str(), model_params);
@@ -877,6 +878,13 @@ class InferencePipelineImpl final : public InferencePipeline {
           request.prompt.c_str(), static_cast<int>(request.prompt.size()),
           prompt_tokens.data(), static_cast<int>(prompt_tokens.size()),
           true, true);
+      if (n_tokens < 0) n_tokens = -n_tokens;
+    }
+    if (n_tokens <= 0) {
+      llama_free(ctx);
+      llama_model_free(model);
+      emit_terminal(state, false);
+      return;
     }
     prompt_tokens.resize(static_cast<size_t>(n_tokens));
 
@@ -893,6 +901,7 @@ class InferencePipelineImpl final : public InferencePipeline {
         batch.seq_id[j][0] = 0;
         batch.logits[j] = (j == n - 1);
       }
+      batch.n_tokens = static_cast<int32_t>(n);  // explicitly set
       if (llama_decode(ctx, batch) != 0) {
         llama_batch_free(batch);
         llama_free(ctx);
@@ -938,6 +947,7 @@ class InferencePipelineImpl final : public InferencePipeline {
       batch.n_seq_id[0] = 1;
       batch.seq_id[0][0] = 0;
       batch.logits[0] = true;
+      batch.n_tokens = 1;
       if (llama_decode(ctx, batch) != 0) {
         llama_batch_free(batch);
         break;
