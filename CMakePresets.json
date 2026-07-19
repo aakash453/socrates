@@ -1,0 +1,199 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug (M1-M4)",
+      "description": "Debug build for Apple Silicon with Metal GPU + Neural Engine + AMX",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/conan-debug/conan_toolchain.cmake",
+        "SOCRATES_ENABLE_TESTS": "ON",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "OFF",
+        "SOCRATES_ENABLE_MLX": "ON",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release (M1-M4 Optimized)",
+      "description": "Release build for Apple Silicon \u2014 Metal GPU + AMX coprocessor, LTO",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/conan-release/conan_toolchain.cmake",
+        "SOCRATES_ENABLE_TESTS": "OFF",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "OFF",
+        "SOCRATES_ENABLE_MLX": "ON",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "windows-arm64-release",
+      "displayName": "Windows ARM64 Release (Snapdragon X Elite)",
+      "description": "Release for Snapdragon X Elite \u2014 LiteRT DirectML GPU, QNN NPU, CPU fallback",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "ARM64",
+      "binaryDir": "${sourceDir}/build/windows-arm64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SOCRATES_ENABLE_TESTS": "OFF",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "ON",
+        "SOCRATES_ENABLE_LITERT": "ON",
+        "SOCRATES_ENABLE_MLX": "OFF",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "windows-x64-release",
+      "displayName": "Windows x64 Release",
+      "description": "Release for Windows x64 \u2014 LiteRT DirectML GPU + AVX2 CPU",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows-x64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SOCRATES_ENABLE_TESTS": "ON",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "OFF",
+        "SOCRATES_ENABLE_LITERT": "ON",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "linux-arm64-release",
+      "displayName": "Linux ARM64 Release (Raspberry Pi 5 / Jetson)",
+      "description": "Release for Linux ARM64 \u2014 NEON SIMD + CPU",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-arm64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SOCRATES_ENABLE_TESTS": "OFF",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "OFF",
+        "SOCRATES_ENABLE_MLX": "OFF",
+        "SOCRATES_ENABLE_LITERT": "OFF",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "linux-x64-release",
+      "displayName": "Linux x64 Release",
+      "description": "Release for Linux x86_64 \u2014 AVX2 + FMA + LTO",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-x64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SOCRATES_ENABLE_TESTS": "ON",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_QNN": "OFF",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "windows-arm64-release",
+      "displayName": "Windows ARM64 Release (Snapdragon X Elite)",
+      "description": "Release build for Snapdragon X Elite \u2014 LiteRT NPU with llama.cpp CPU fallback",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-arm64-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_SYSTEM_PROCESSOR": "ARM64",
+        "SOCRATES_ENABLE_TESTS": "OFF",
+        "SOCRATES_ENABLE_TOOLS": "ON",
+        "SOCRATES_ENABLE_LLAMA": "ON",
+        "SOCRATES_ENABLE_MLX": "OFF",
+        "SOCRATES_ENABLE_QNN": "ON",
+        "SOCRATES_ENABLE_LITERT": "ON",
+        "SOCRATES_ENABLE_EXECUTORCH": "ON",
+        "SOCRATES_WARNINGS_AS_ERRORS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug",
+      "jobs": 0
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release",
+      "jobs": 0
+    },
+    {
+      "name": "ios-device-release",
+      "configurePreset": "ios-device-release",
+      "jobs": 0
+    },
+    {
+      "name": "android-arm64-release",
+      "configurePreset": "android-arm64-release",
+      "jobs": 0
+    },
+    {
+      "name": "android-arm64-debug",
+      "configurePreset": "android-arm64-debug",
+      "jobs": 0
+    },
+    {
+      "name": "android-x86_64-debug",
+      "configurePreset": "android-x86_64-debug",
+      "jobs": 0
+    },
+    {
+      "name": "windows-arm64-release",
+      "configurePreset": "windows-arm64-release",
+      "jobs": 0
+    },
+    {
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64-release",
+      "jobs": 0
+    },
+    {
+      "name": "linux-arm64-release",
+      "configurePreset": "linux-arm64-release",
+      "jobs": 0
+    },
+    {
+      "name": "linux-x64-release",
+      "configurePreset": "linux-x64-release",
+      "jobs": 0
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

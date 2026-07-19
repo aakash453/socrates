@@ -1,0 +1,14 @@
+version: v2
+name: buf.build/multiverse/socrates
+deps:
+  - buf.build/googleapis/googleapis
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_VERSION_SUFFIX
+    - SERVICE_SUFFIX
+  enum_zero_value_suffix: _UNSPECIFIED

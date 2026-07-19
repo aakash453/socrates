@@ -1,0 +1,34 @@
+services:
+  node-a:
+    image: socrates-node
+    hostname: node-a
+    environment:
+      - NODE_ID=node-a
+      - NODE_GPU=1
+      - NODE_ARCH=arm64
+    networks:
+      - socrates-net
+
+  node-b:
+    image: socrates-node
+    hostname: node-b
+    environment:
+      - NODE_ID=node-b
+      - NODE_GPU=0
+      - NODE_ARCH=amd64
+    networks:
+      - socrates-net
+
+  node-c:
+    image: socrates-node
+    hostname: node-c
+    environment:
+      - NODE_ID=node-c
+      - NODE_GPU=0
+      - NODE_ARCH=amd64
+    networks:
+      - socrates-net
+
+networks:
+  socrates-net:
+    driver: bridge

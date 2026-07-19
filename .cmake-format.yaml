@@ -1,0 +1,24 @@
+# cmake-format configuration for Socrates Runtime
+# Matches the coding conventions: 2-space indent, lowercase commands
+
+parse:
+  additional_commands:
+    set_project_warnings:
+      pargs: 1
+      flags: []
+
+format:
+  line_width: 100
+  tab_size: 2
+  use_tabchars: false
+  separate_ctrl_name_with_space: true
+  separate_fn_name_with_space: false
+  dangle_parens: false
+  min_prefix_chars: 2
+  max_prefix_chars: 2
+  max_lines_hwrap: 2
+  line_ending: unix
+  command_case: lower
+  keyword_case: upper
+  enable_sort: false
+  autosort: false

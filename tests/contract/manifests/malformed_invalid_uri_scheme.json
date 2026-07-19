@@ -1,0 +1,37 @@
+{
+  "description": "invalid_uri_scheme",
+  "rule": "artifact.uri_scheme",
+  "expected_error": "MVP artifact URIs must use file:./ scheme with relative normalized paths",
+  "manifest": {
+    "schemaVersion": "1.0.0",
+    "manifestId": "malformed-03",
+    "modelId": "test-model",
+    "modelRevision": "1.0",
+    "architecture": "llama",
+    "parameterCount": "1000000000",
+    "totalTransformerLayers": 22,
+    "tokenizerArtifactUri": "file:./tokenizer.model",
+    "graph": {
+      "embedding": { "stageId": "embedding", "ordinal": 0, "embedding": { "tensorName": "emb" } },
+      "transformer": [{ "stageId": "t-0-22", "ordinal": 1, "transformer": { "startLayer": 0, "endLayerExclusive": 22 } }],
+      "outputNorm": { "stageId": "on", "ordinal": 2, "outputNorm": { "inputTensorName": "h", "outputTensorName": "o" } },
+      "lmHead": { "stageId": "lmh", "ordinal": 3, "lmHead": { "inputTensorName": "o", "outputTensorName": "logits" } }
+    },
+    "artifacts": [{
+      "artifactId": "a-1",
+      "shardCount": 1,
+      "shards": [{
+        "ordinal": 0,
+        "startLayer": 0,
+        "endLayerExclusive": 22,
+        "stageId": "t-0-22",
+        "role": "inference",
+        "quantizationId": "fp16",
+        "uri": "https://example.com/model.bin",
+        "sizeBytes": "500000000",
+        "sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }],
+      "orderedShardsSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    }]
+  }
+}

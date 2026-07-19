@@ -1,0 +1,7 @@
+# EdgeAI clang-tidy configuration
+Checks: "clang-diagnostic-*,clang-analyzer-*,bugprone-*,modernize-*,performance-*,readability-*"
+CheckOptions:
+  - key: readability-identifier-length.MinimumVariableNameLength
+    value: 2
+WarningsAsErrors: "*"
+HeaderFilterRegex: "include/edgeai/.*"

@@ -1,0 +1,21 @@
+{
+  "description": "missing_model_id",
+  "rule": "identity.missing_model_id",
+  "expected_error": "model_id must be a non-empty identifier matching [A-Za-z0-9][A-Za-z0-9._-]{0,127}",
+  "manifest": {
+    "schemaVersion": "1.0.0",
+    "manifestId": "malformed-01",
+    "modelId": "",
+    "modelRevision": "1.0",
+    "architecture": "llama",
+    "parameterCount": "1000000000",
+    "totalTransformerLayers": 22,
+    "tokenizerArtifactUri": "file:./tokenizer.model",
+    "graph": {
+      "embedding": { "stageId": "embedding", "ordinal": 0, "embedding": { "tensorName": "emb" } },
+      "transformer": [{ "stageId": "t-0-22", "ordinal": 1, "transformer": { "startLayer": 0, "endLayerExclusive": 22 } }],
+      "outputNorm": { "stageId": "on", "ordinal": 2, "outputNorm": { "inputTensorName": "h", "outputTensorName": "o" } },
+      "lmHead": { "stageId": "lmh", "ordinal": 3, "lmHead": { "inputTensorName": "o", "outputTensorName": "logits" } }
+    }
+  }
+}

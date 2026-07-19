@@ -1,0 +1,136 @@
+# Golden manifest for TinyLlama 1.1B in textproto format.
+# This fixture represents a valid, complete ModelManifestEnvelope.
+# The payload_sha256 is a known value for this exact payload content.
+
+schema_version: "1.0.0"
+manifest_id: "tinyllama-1.1b-v1"
+model_id: "tinyllama"
+model_revision: "1.1b"
+architecture: "llama"
+parameter_count: 1100000000
+total_transformer_layers: 22
+
+tokenizer_artifact_uri: "file:./tokenizer.model"
+
+graph {
+  embedding {
+    stage_id: "embedding"
+    ordinal: 0
+    embedding { tensor_name: "token_embeddings" }
+  }
+  transformer {
+    stage_id: "transformer-0-22"
+    ordinal: 1
+    transformer {
+      start_layer: 0
+      end_layer_exclusive: 22
+      input_tensor_names: "hidden_states_in"
+      output_tensor_names: "hidden_states_out"
+    }
+  }
+  output_norm {
+    stage_id: "output-norm"
+    ordinal: 2
+    output_norm {
+      input_tensor_name: "hidden_states_out"
+      output_tensor_name: "norm_out"
+    }
+  }
+  lm_head {
+    stage_id: "lm-head"
+    ordinal: 3
+    lm_head {
+      input_tensor_name: "norm_out"
+      output_tensor_name: "logits"
+    }
+  }
+}
+
+quantizations {
+  quantization_id: "q4_k_m"
+  kind: QUANTIZATION_KIND_INT4
+  scheme: QUANTIZATION_SCHEME_PER_GROUP
+  group_size: 128
+}
+
+quantizations {
+  quantization_id: "fp16"
+  kind: QUANTIZATION_KIND_FP16
+}
+
+artifacts {
+  artifact_set_id: "gguf-q4"
+  shard_count: 1
+  shards {
+    ordinal: 0
+    start_layer: 0
+    end_layer_exclusive: 22
+    stage_id: "transformer-0-22"
+    role: "inference"
+    quantization_id: "q4_k_m"
+    uri: "file:./tinyllama-1.1b-Q4_K_M.gguf"
+    size_bytes: 668000000
+    sha256: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    memory_estimate {
+      weight_bytes: 620000000
+      kv_cache_per_token_bytes: 2048
+      peak_runtime_bytes: 1300000000
+    }
+  }
+  ordered_shards_sha256: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+}
+
+execution_profiles {
+  profile_id: "llama-cpp-metal-q4"
+  artifact_set_id: "gguf-q4"
+  backend_version: ">=0.3.0"
+  backend_kind: BACKEND_KIND_LLAMA_CPP
+  required_compute_units: "cpu"
+  required_compute_units: "gpu"
+  required_features: "metal"
+  covered_operators: "rms_norm"
+  covered_operators: "silu"
+  covered_operators: "rotary_embedding"
+  hardware_limits {
+    min_memory_bytes: 2000000000
+  }
+}
+
+execution_profiles {
+  profile_id: "llama-cpp-cpu-fallback"
+  artifact_set_id: "gguf-q4"
+  backend_version: ">=0.3.0"
+  backend_kind: BACKEND_KIND_EXECUTORCH_CPU
+  required_compute_units: "cpu"
+  covered_operators: "rms_norm"
+  covered_operators: "silu"
+  hardware_limits {
+    min_memory_bytes: 4000000000
+  }
+}
+
+calibration {
+  layer_index: 0
+  quantization_id: "q4_k_m"
+  execution_profile_id: "llama-cpp-metal-q4"
+  dataset_id: "wikitext-2"
+  sample_count: 128
+  compute_cost: 1.0
+  memory_cost: 0.0476
+  quality_sensitivity: 0.12
+}
+
+integrity_constraints {
+  required_validation_rules: "no-unknown-fields"
+  required_validation_rules: "check-sha256"
+  required_validation_rules: "check-layer-coverage"
+  permitted_uri_schemes: "file"
+  max_artifact_size_bytes: 5000000000
+  immutable_uris: true
+  max_hidden_state_bytes: 30720
+}
+
+created_at {
+  seconds: 1721300000
+  nanos: 0
+}

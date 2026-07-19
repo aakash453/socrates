@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package socrates.v1;
+
+import "socrates/v1/model_manifest.proto";
+import "google/protobuf/timestamp.proto";
+
+// ── Tensor envelope ──────────────────────────────────────────────────────────
+
+message TensorEnvelope {
+  string request_id = 1;
+  string pipe_id = 2;
+  uint64 sequence_number = 3;
+  uint32 stage_ordinal = 4;
+  TensorSpec spec = 5;
+  bytes payload = 6;
+  bytes checksum = 7;
+  google.protobuf.Timestamp sent_at = 8;
+  uint64 deadline_remaining_us = 9;
+}
+
+// ── Activation stream ────────────────────────────────────────────────────────
+
+message ActivationFrame {
+  string request_id = 1;
+  uint64 sequence_number = 2;
+  uint32 source_stage = 3;
+  bytes hidden_state = 4;
+  uint64 hidden_state_size_bytes = 5;
+  bytes checksum = 6;
+  uint64 sent_at_epoch_us = 7;
+  uint64 deadline_epoch_us = 8;
+  uint64 deadline_remaining_us = 9;
+}
+
+message ActivationAck {
+  string request_id = 1;
+  uint64 sequence_number = 2;
+  bool accepted = 3;
+  string failure_reason = 4;
+}
+
+// ── Token events ─────────────────────────────────────────────────────────────
+
+message TokenEvent {
+  string request_id = 1;
+  uint64 token_index = 2;
+  string text = 3;
+  uint32 token_id = 4;
+  double log_prob = 5;
+  bool is_final = 6;
+  uint64 generated_at_epoch_us = 7;
+}
+
+// ── Request lifecycle ────────────────────────────────────────────────────────
+
+message GenerateRequest {
+  string request_id = 1;
+  string model_id = 2;
+  string pipe_id = 3;
+  DataPlanePipelinePlan plan = 4;
+  GenerateConfig config = 5;
+}
+
+message GenerateConfig {
+  string prompt_text = 1;
+  repeated uint32 prompt_tokens = 2;
+  uint32 max_tokens = 3;
+  double temperature = 4;
+  double top_p = 5;
+  uint32 top_k = 6;
+  repeated uint32 stop_tokens = 7;
+  repeated string stop_strings = 8;
+  uint64 seed = 9;
+  bool stream = 10;
+}
+
+message CancelRequest {
+  string request_id = 1;
+  string reason = 2;
+}
+
+message GenerateStatus {
+  string request_id = 1;
+  string pipe_id = 2;
+  uint32 tokens_generated = 3;
+  GenerateState state = 4;
+}
+
+enum GenerateState {
+  GENERATE_STATE_UNSPECIFIED = 0;
+  GENERATE_STATE_QUEUED = 1;
+  GENERATE_STATE_PREFILLING = 2;
+  GENERATE_STATE_DECODING = 3;
+  GENERATE_STATE_COMPLETED = 4;
+  GENERATE_STATE_CANCELLED = 5;
+  GENERATE_STATE_FAILED = 6;
+}
+
+// ── Self-contained plan reference (avoids import cycle with control_plane) ───
+
+message DataPlanePipelinePlan {
+  string plan_id = 1;
+  uint64 leader_term = 2;
+  string fencing_token = 3;
+  uint64 membership_revision = 4;
+  string model_id = 5;
+  repeated DataPlaneStageAssignment stages = 6;
+  uint64 valid_for_ms = 7;
+}
+
+message DataPlaneStageAssignment {
+  uint32 stage_index = 1;
+  uint32 start_layer = 2;
+  uint32 end_layer_exclusive = 3;
+  string node_id = 4;
+  string shard_id = 5;
+  BackendKind backend = 6;
+  string quantization_id = 7;
+  ComputeUnit target_unit = 8;
+  uint64 estimated_memory_bytes = 9;
+}
+
+// ── Service ──────────────────────────────────────────────────────────────────
+
+service DataPlane {
+  rpc PushActivation(stream ActivationFrame) returns (stream ActivationAck);
+  rpc StreamTokens(GenerateRequest) returns (stream TokenEvent);
+  rpc Cancel(CancelRequest) returns (GenerateStatus);
+  rpc Status(GenerateRequest) returns (GenerateStatus);
+}

@@ -1,0 +1,251 @@
+syntax = "proto3";
+
+package socrates.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ── Envelope ─────────────────────────────────────────────────────────────────
+
+message ModelManifestEnvelope {
+  // Exact serialized ModelManifest bytes.
+  bytes manifest_payload = 1;
+
+  // SHA-256 digest over manifest_payload (exactly 32 bytes).
+  bytes payload_sha256 = 2;
+}
+
+// ── Manifest ─────────────────────────────────────────────────────────────────
+
+message ModelManifest {
+  string schema_version = 1;
+  string manifest_id = 2;
+  string model_id = 3;
+  string model_revision = 4;
+  string architecture = 5;
+  uint64 parameter_count = 6;
+  uint32 total_transformer_layers = 7;
+
+  string tokenizer_artifact_uri = 8;
+
+  Graph graph = 9;
+  repeated QuantizationIdentity quantizations = 10;
+  repeated ArtifactSet artifacts = 11;
+  repeated ExecutionProfile execution_profiles = 12;
+  repeated CalibrationEntry calibration = 13;
+  IntegrityConstraints integrity_constraints = 14;
+
+  google.protobuf.Timestamp created_at = 15;
+}
+
+// ── Graph ────────────────────────────────────────────────────────────────────
+
+message Graph {
+  GraphStage embedding = 1;
+  repeated GraphStage transformer = 2;
+  GraphStage output_norm = 3;
+  GraphStage lm_head = 4;
+}
+
+message GraphStage {
+  string stage_id = 1;
+  uint32 ordinal = 2;
+
+  oneof stage_type {
+    EmbeddingStage embedding = 10;
+    TransformerStage transformer = 11;
+    OutputNormStage output_norm = 12;
+    LmHeadStage lm_head = 13;
+  }
+}
+
+message EmbeddingStage {
+  string tensor_name = 1;
+}
+
+message TransformerStage {
+  uint32 start_layer = 1;
+  uint32 end_layer_exclusive = 2;
+  repeated string input_tensor_names = 3;
+  repeated string output_tensor_names = 4;
+}
+
+message OutputNormStage {
+  string input_tensor_name = 1;
+  string output_tensor_name = 2;
+}
+
+message LmHeadStage {
+  string input_tensor_name = 1;
+  string output_tensor_name = 2;
+}
+
+// ── Tensor boundaries ────────────────────────────────────────────────────────
+
+message TensorBoundary {
+  string name = 1;
+  TensorSpec spec = 2;
+  string producer_stage_id = 3;
+  string consumer_stage_id = 4;
+  bool transferable = 5;
+}
+
+message TensorSpec {
+  string semantic = 1;
+  ElementType data_type = 2;
+  TensorLayout layout = 3;
+  DimensionSpec dimension = 4;
+  uint64 maximum_encoded_bytes = 5;
+  bool is_dynamic = 6;
+}
+
+message DimensionSpec {
+  oneof extent {
+    int64 fixed = 1;
+    DynamicRange dynamic = 2;
+  }
+}
+
+message DynamicRange {
+  int64 min = 1;
+  int64 max = 2;
+}
+
+enum ElementType {
+  ELEMENT_TYPE_UNSPECIFIED = 0;
+  ELEMENT_TYPE_INT8 = 1;
+  ELEMENT_TYPE_INT16 = 2;
+  ELEMENT_TYPE_INT32 = 3;
+  ELEMENT_TYPE_INT64 = 4;
+  ELEMENT_TYPE_FLOAT16 = 5;
+  ELEMENT_TYPE_BF16 = 6;
+  ELEMENT_TYPE_FLOAT32 = 7;
+  ELEMENT_TYPE_FLOAT64 = 8;
+}
+
+enum TensorLayout {
+  TENSOR_LAYOUT_UNSPECIFIED = 0;
+  TENSOR_LAYOUT_ROW_MAJOR = 1;
+  TENSOR_LAYOUT_COLUMN_MAJOR = 2;
+}
+
+// ── Quantization ─────────────────────────────────────────────────────────────
+
+message QuantizationIdentity {
+  string quantization_id = 1;
+  QuantizationKind kind = 2;
+  QuantizationScheme scheme = 3;
+  QuantizationActivation activation = 4;
+  uint32 group_size = 5;
+  bool has_act_order = 6;
+  bool has_gptq = 7;
+}
+
+enum QuantizationKind {
+  QUANTIZATION_KIND_UNSPECIFIED = 0;
+  QUANTIZATION_KIND_FP16 = 1;
+  QUANTIZATION_KIND_INT8 = 2;
+  QUANTIZATION_KIND_INT4 = 3;
+  QUANTIZATION_KIND_INT2 = 4;
+  QUANTIZATION_KIND_TERNARY = 5;
+}
+
+enum QuantizationScheme {
+  QUANTIZATION_SCHEME_UNSPECIFIED = 0;
+  QUANTIZATION_SCHEME_PER_TENSOR = 1;
+  QUANTIZATION_SCHEME_PER_CHANNEL = 2;
+  QUANTIZATION_SCHEME_PER_GROUP = 3;
+}
+
+enum QuantizationActivation {
+  QUANTIZATION_ACTIVATION_UNSPECIFIED = 0;
+  QUANTIZATION_ACTIVATION_FP8 = 1;
+  QUANTIZATION_ACTIVATION_FP16 = 2;
+  QUANTIZATION_ACTIVATION_INT16 = 3;
+  QUANTIZATION_ACTIVATION_INT32 = 4;
+}
+
+// ── Artifacts ────────────────────────────────────────────────────────────────
+
+message ArtifactSet {
+  string artifact_set_id = 1;
+  uint32 shard_count = 2;
+  repeated OrdinalShard shards = 3;
+  bytes ordered_shards_sha256 = 4;
+}
+
+message OrdinalShard {
+  uint32 ordinal = 1;
+  uint32 start_layer = 2;
+  uint32 end_layer_exclusive = 3;
+  string stage_id = 4;
+  string role = 5;
+  string quantization_id = 6;
+  string uri = 7;
+  uint64 size_bytes = 8;
+  bytes sha256 = 9;
+  MemoryEstimate memory_estimate = 10;
+}
+
+message MemoryEstimate {
+  uint64 weight_bytes = 1;
+  uint64 kv_cache_per_token_bytes = 2;
+  uint64 peak_runtime_bytes = 3;
+}
+
+// ── Execution profiles ───────────────────────────────────────────────────────
+
+message ExecutionProfile {
+  string profile_id = 1;
+  string artifact_set_id = 2;
+  string backend_version = 3;
+  BackendKind backend_kind = 4;
+  repeated string required_compute_units = 5;
+  repeated string required_features = 6;
+  repeated string covered_operators = 7;
+  HardwareLimits hardware_limits = 8;
+  string fallback_profile_id = 9;
+}
+
+message HardwareLimits {
+  uint64 min_memory_bytes = 1;
+  uint64 min_compute_units = 2;
+}
+
+enum BackendKind {
+  BACKEND_KIND_UNSPECIFIED = 0;
+  BACKEND_KIND_LLAMA_CPP = 1;
+  BACKEND_KIND_EXECUTORCH_QNN = 2;
+  BACKEND_KIND_EXECUTORCH_CPU = 3;
+  BACKEND_KIND_MLX = 4;
+  BACKEND_KIND_LITE_RT = 5;
+}
+
+enum ComputeUnit {
+  COMPUTE_UNIT_UNSPECIFIED = 0;
+  COMPUTE_UNIT_CPU = 1;
+  COMPUTE_UNIT_GPU = 2;
+  COMPUTE_UNIT_NPU = 3;
+}
+
+// ── Calibration ──────────────────────────────────────────────────────────────
+
+message CalibrationEntry {
+  uint32 layer_index = 1;
+  string quantization_id = 2;
+  string execution_profile_id = 3;
+  string dataset_id = 4;
+  uint32 sample_count = 5;
+  double compute_cost = 6;
+  double memory_cost = 7;
+  double quality_sensitivity = 8;
+}
+
+// ── Integrity ────────────────────────────────────────────────────────────────
+
+message IntegrityConstraints {
+  repeated string required_validation_rules = 1;
+  repeated string permitted_uri_schemes = 2;
+  uint64 max_artifact_size_bytes = 3;
+  bool immutable_uris = 4;
+  uint64 max_hidden_state_bytes = 5;
+}

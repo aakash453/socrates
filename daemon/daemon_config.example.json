@@ -1,0 +1,40 @@
+{
+  "listen_address": "0.0.0.0",
+  "listen_port": 50051,
+  "state_directory": "/var/lib/socrates",
+  "model_root": "/var/lib/socrates/models",
+  "log_level": "info",
+  "log_file": "/var/log/socrates/daemon.log",
+  "tls": {
+    "certificate_file": "/etc/socrates/certs/server.crt",
+    "private_key_file": "/etc/socrates/certs/server.key",
+    "trust_bundle": "/etc/socrates/certs/ca.crt",
+    "require_client_auth": true
+  },
+  "cluster": {
+    "cluster_id": "socrates-cluster",
+    "trust_mode": "ephemeral",
+    "allowed_peer_fingerprints": [],
+    "discovery_order": ["mdns", "udp_broadcast", "bluetooth"],
+    "udp_port": 9001,
+    "heartbeat_interval_ms": 3000,
+    "heartbeat_timeout_ms": 10000
+  },
+  "profiler": {
+    "validity_interval_ms": 300000,
+    "network_probe_interval_ms": 5000,
+    "benchmark_warmup_runs": 3,
+    "benchmark_measured_runs": 10
+  },
+  "pipeline": {
+    "max_concurrent_requests": 8,
+    "max_activation_queue_size": 64,
+    "default_request_timeout_ms": 60000,
+    "recovery_token_retention": 4096
+  },
+  "trace": {
+    "enabled": false,
+    "sample_rate": 0.01,
+    "export_directory": "/var/log/socrates/traces"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "modelId": "tinyllama-1.1b",
+  "manifestId": "tinyllama-1.1b-v1",
+  "version": "1.0.0",
+  "totalTransformerLayers": 22,
+  "quantizations": [
+    {"id": "q4_k_m", "kind": "int4", "scheme": "perGroup", "activation": "fp16", "groupSize": 128},
+    {"id": "fp16", "kind": "fp16"}
+  ],
+  "shards": [
+    {
+      "shardId": "tinyllama-embed",
+      "stageIds": ["token-embedding"],
+      "stageKind": "tokenEmbedding",
+      "quantizationId": "fp16",
+      "artifact": {"uri": "file:./tinyllama-1.1b-embed.gguf", "sha256": "abc123def456", "format": "gguf", "formatVersion": "3", "fileBytes": 52428800},
+      "executionProfileId": "cpu-fp16",
+      "peakRuntimeMemoryBytes": 52428800,
+      "estimatedKvBytesPerToken": 0,
+      "compatibleBackends": ["llamaCpp", "execuTorchCpu"],
+      "requiredComputeUnits": ["cpu"],
+      "requiredOperatorIds": ["embedding_lookup"],
+      "estimatedPrefillMicroseconds": 2000,
+      "estimatedDecodeMicroseconds": 500,
+      "sensitivityScore": 0.05
+    },
+    {
+      "shardId": "tinyllama-layers-0-11",
+      "stageIds": ["transformer-layers-0-11"],
+      "stageKind": "transformerLayers",
+      "layers": {"start": 0, "endExclusive": 11},
+      "quantizationId": "q4_k_m",
+      "artifact": {"uri": "file:./tinyllama-1.1b-layers-0-11.gguf", "sha256": "def789abc012", "format": "gguf", "formatVersion": "3", "fileBytes": 209715200},
+      "executionProfileId": "cpu-int4",
+      "peakRuntimeMemoryBytes": 209715200,
+      "estimatedKvBytesPerToken": 65536,
+      "compatibleBackends": ["llamaCpp"],
+      "requiredComputeUnits": ["cpu"],
+      "requiredOperatorIds": ["rms_norm", "attention", "ffn_gate", "ffn_up", "ffn_down"],
+      "estimatedPrefillMicroseconds": 8000,
+      "estimatedDecodeMicroseconds": 1500,
+      "sensitivityScore": 0.8
+    },
+    {
+      "shardId": "tinyllama-layers-11-22",
+      "stageIds": ["transformer-layers-11-22"],
+      "stageKind": "transformerLayers",
+      "layers": {"start": 11, "endExclusive": 22},
+      "quantizationId": "q4_k_m",
+      "artifact": {"uri": "file:./tinyllama-1.1b-layers-11-22.gguf", "sha256": "ghi345jkl678", "format": "gguf", "formatVersion": "3", "fileBytes": 209715200},
+      "executionProfileId": "cpu-int4",
+      "peakRuntimeMemoryBytes": 209715200,
+      "estimatedKvBytesPerToken": 65536,
+      "compatibleBackends": ["llamaCpp"],
+      "requiredComputeUnits": ["cpu"],
+      "requiredOperatorIds": ["rms_norm", "attention", "ffn_gate", "ffn_up", "ffn_down"],
+      "estimatedPrefillMicroseconds": 8000,
+      "estimatedDecodeMicroseconds": 1500,
+      "sensitivityScore": 0.8
+    },
+    {
+      "shardId": "tinyllama-output",
+      "stageIds": ["output-normalization", "lm-head"],
+      "stageKind": "outputNormalization",
+      "quantizationId": "fp16",
+      "artifact": {"uri": "file:./tinyllama-1.1b-output.gguf", "sha256": "jkl901mno234", "format": "gguf", "formatVersion": "3", "fileBytes": 52428800},
+      "executionProfileId": "cpu-fp16",
+      "peakRuntimeMemoryBytes": 52428800,
+      "estimatedKvBytesPerToken": 0,
+      "compatibleBackends": ["llamaCpp", "execuTorchCpu"],
+      "requiredComputeUnits": ["cpu"],
+      "requiredOperatorIds": ["rms_norm", "lm_head"],
+      "estimatedPrefillMicroseconds": 1500,
+      "estimatedDecodeMicroseconds": 300,
+      "sensitivityScore": 0.02
+    }
+  ],
+  "boundaries": [
+    {
+      "boundaryId": "embed-to-layers-0",
+      "producerStageId": "token-embedding",
+      "consumerStageId": "transformer-layers-0-11",
+      "tensors": [{"tensorId": "hidden_states", "elementType": "float16", "maximumShape": [1, 2048], "layout": "rowMajor", "maximumEncodedBytes": 4096}],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    },
+    {
+      "boundaryId": "layers-11-to-layers-11-end",
+      "producerStageId": "transformer-layers-0-11",
+      "consumerStageId": "transformer-layers-11-22",
+      "tensors": [{"tensorId": "hidden_states", "elementType": "float16", "maximumShape": [1, 2048], "layout": "rowMajor", "maximumEncodedBytes": 4096}],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    },
+    {
+      "boundaryId": "layers-end-to-output",
+      "producerStageId": "transformer-layers-11-22",
+      "consumerStageId": "output-normalization",
+      "tensors": [{"tensorId": "hidden_states", "elementType": "float16", "maximumShape": [1, 2048], "layout": "rowMajor", "maximumEncodedBytes": 4096}],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    }
+  ],
+  "calibrationSamples": [
+    {"nodeId": "local", "shardId": "tinyllama-layers-0-11", "backend": "llamaCpp", "phase": "prefill", "batchSize": 1, "sequenceLength": 512, "transferredBytes": 0, "measuredDurationMicros": 8200, "peakMemoryBytes": 220000000},
+    {"nodeId": "local", "shardId": "tinyllama-layers-0-11", "backend": "llamaCpp", "phase": "decode", "batchSize": 1, "sequenceLength": 1, "transferredBytes": 0, "measuredDurationMicros": 1600, "peakMemoryBytes": 215000000}
+  ]
+}

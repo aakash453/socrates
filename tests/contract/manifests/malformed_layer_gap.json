@@ -1,0 +1,24 @@
+{
+  "description": "layer_gap",
+  "rule": "graph.incomplete_coverage",
+  "expected_error": "transformer layer ranges must exactly cover [0, total_transformer_layers) without gaps",
+  "manifest": {
+    "schemaVersion": "1.0.0",
+    "manifestId": "malformed-02",
+    "modelId": "test-model",
+    "modelRevision": "1.0",
+    "architecture": "llama",
+    "parameterCount": "1000000000",
+    "totalTransformerLayers": 22,
+    "tokenizerArtifactUri": "file:./tokenizer.model",
+    "graph": {
+      "embedding": { "stageId": "embedding", "ordinal": 0, "embedding": { "tensorName": "emb" } },
+      "transformer": [
+        { "stageId": "t-0-10", "ordinal": 1, "transformer": { "startLayer": 0, "endLayerExclusive": 10 } },
+        { "stageId": "t-15-22", "ordinal": 2, "transformer": { "startLayer": 15, "endLayerExclusive": 22 } }
+      ],
+      "outputNorm": { "stageId": "on", "ordinal": 3, "outputNorm": { "inputTensorName": "h", "outputTensorName": "o" } },
+      "lmHead": { "stageId": "lmh", "ordinal": 4, "lmHead": { "inputTensorName": "o", "outputTensorName": "logits" } }
+    }
+  }
+}

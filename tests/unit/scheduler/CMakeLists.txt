@@ -1,0 +1,1 @@
+target_sources(socrates_unit_tests PRIVATE scheduler_property_tests.cpp)

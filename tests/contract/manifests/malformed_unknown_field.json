@@ -1,0 +1,22 @@
+{
+  "description": "unknown_field",
+  "rule": "schema.no_unknown_fields",
+  "expected_error": "unknown fields are rejected for schema version 1.0",
+  "manifest": {
+    "schemaVersion": "1.0.0",
+    "manifestId": "malformed-06",
+    "modelId": "test-model",
+    "modelRevision": "1.0",
+    "architecture": "llama",
+    "parameterCount": "1000000000",
+    "totalTransformerLayers": 22,
+    "tokenizerArtifactUri": "file:./tokenizer.model",
+    "unsupportedFieldThatDoesNotExist": "should-be-rejected",
+    "graph": {
+      "embedding": { "stageId": "embedding", "ordinal": 0, "embedding": { "tensorName": "emb" } },
+      "transformer": [{ "stageId": "t-0-22", "ordinal": 1, "transformer": { "startLayer": 0, "endLayerExclusive": 22 } }],
+      "outputNorm": { "stageId": "on", "ordinal": 2, "outputNorm": { "inputTensorName": "h", "outputTensorName": "o" } },
+      "lmHead": { "stageId": "lmh", "ordinal": 3, "lmHead": { "inputTensorName": "o", "outputTensorName": "logits" } }
+    }
+  }
+}

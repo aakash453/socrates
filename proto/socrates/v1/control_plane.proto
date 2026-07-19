@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package socrates.v1;
+
+import "socrates/v1/model_manifest.proto";
+import "google/protobuf/timestamp.proto";
+
+// ── Discovery ────────────────────────────────────────────────────────────────
+
+message DiscoveryAnnouncement {
+  string node_id = 1;
+  string listen_address = 2;
+  uint32 listen_port = 3;
+  repeated BackendKind available_backends = 4;
+  uint64 started_at_epoch_ms = 5;
+}
+
+// ── Membership ───────────────────────────────────────────────────────────────
+
+message MembershipSnapshot {
+  uint64 revision = 1;
+  repeated Member nodes = 2;
+  string leader_id = 3;
+  uint64 leader_term = 4;
+}
+
+message Member {
+  string node_id = 1;
+  MemberState state = 2;
+  CapabilityReport capability = 3;
+  uint64 last_heartbeat_epoch_ms = 4;
+}
+
+enum MemberState {
+  MEMBER_STATE_UNSPECIFIED = 0;
+  MEMBER_STATE_JOINING = 1;
+  MEMBER_STATE_LIVE = 2;
+  MEMBER_STATE_SUSPECT = 3;
+  MEMBER_STATE_LEFT = 4;
+}
+
+// ── Capability ───────────────────────────────────────────────────────────────
+
+message CapabilityReport {
+  string node_id = 1;
+  uint64 revision = 2;
+  google.protobuf.Timestamp measured_at = 3;
+  uint64 valid_for_ms = 4;
+  uint64 total_memory_bytes = 5;
+  uint64 available_memory_bytes = 6;
+  string cpu_model = 7;
+  uint32 logical_cpu_count = 8;
+  repeated string accelerators = 9;
+  repeated BackendCapability backends = 10;
+  repeated BackendBenchmark measured_benchmarks = 11;
+  NetworkMetrics network_to_leader = 12;
+}
+
+message BackendCapability {
+  BackendKind kind = 1;
+  string version = 2;
+  repeated string quantization_ids = 3;
+  repeated ComputeUnit compute_units = 4;
+  bool allows_cpu_fallback = 5;
+}
+
+message BackendBenchmark {
+  BackendKind backend = 1;
+  string quantization_id = 2;
+  uint32 sequence_length = 3;
+  double prefill_tokens_per_second = 4;
+  double decode_tokens_per_second = 5;
+  uint64 first_token_latency_micros = 6;
+  uint64 peak_memory_bytes = 7;
+}
+
+message NetworkMetrics {
+  uint64 round_trip_latency_micros = 1;
+  uint64 available_bandwidth_bytes_per_second = 2;
+}
+
+// ── Election ─────────────────────────────────────────────────────────────────
+
+message ElectionMessage {
+  uint64 term = 1;
+  string candidate_id = 2;
+  string fencing_token = 3;
+}
+
+// ── Scheduling ───────────────────────────────────────────────────────────────
+
+message ScheduleRequest {
+  ModelManifestEnvelope manifest_envelope = 1;
+  MembershipSnapshot membership_snapshot = 2;
+  repeated CapabilityReport capability_reports = 3;
+}
+
+message ScheduleResponse {
+  PipelinePlan plan = 1;
+  bool feasible = 2;
+  string infeasibility_reason = 3;
+}
+
+message PipelinePlan {
+  string plan_id = 1;
+  uint64 leader_term = 2;
+  string fencing_token = 3;
+  uint64 membership_revision = 4;
+  string model_id = 5;
+  uint64 revision = 6;
+  repeated StageAssignment stages = 7;
+  google.protobuf.Timestamp issued_at = 8;
+  uint64 valid_for_ms = 9;
+}
+
+message StageAssignment {
+  uint32 stage_index = 1;
+  uint32 start_layer = 2;
+  uint32 end_layer_exclusive = 3;
+  string node_id = 4;
+  string shard_id = 5;
+  BackendKind backend = 6;
+  string quantization_id = 7;
+  ComputeUnit target_unit = 8;
+  uint64 estimated_memory_bytes = 9;
+}
+
+// ── Service ──────────────────────────────────────────────────────────────────
+
+service ControlPlane {
+  rpc Discover(DiscoveryAnnouncement) returns (DiscoveryAnnouncement);
+  rpc JoinCluster(Member) returns (MembershipSnapshot);
+  rpc Heartbeat(Member) returns (MembershipSnapshot);
+  rpc ReportCapability(CapabilityReport) returns (MembershipSnapshot);
+  rpc RequestElection(ElectionMessage) returns (ElectionMessage);
+  rpc Schedule(ScheduleRequest) returns (ScheduleResponse);
+}
+

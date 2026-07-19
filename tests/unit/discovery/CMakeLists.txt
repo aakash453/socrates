@@ -1,0 +1,1 @@
+target_sources(socrates_unit_tests PRIVATE discovery_tests.cpp)

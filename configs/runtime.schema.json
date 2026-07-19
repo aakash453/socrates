@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://socrates.multiverse.dev/runtime.schema.json",
+  "title": "Socrates Runtime Config",
+  "type": "object",
+  "required": ["model_root", "state_directory", "cluster"],
+  "properties": {
+    "listen_address": { "type": "string", "default": "0.0.0.0" },
+    "listen_port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 50051 },
+    "state_directory": { "type": "string", "description": "Persistent state path" },
+    "model_root": { "type": "string", "description": "Preloaded model artifact root" },
+    "log_level": { "type": "string", "enum": ["trace", "debug", "info", "warn", "error", "fatal"], "default": "info" },
+    "log_file": { "type": "string" },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "certificate_file": { "type": "string" },
+        "private_key_file": { "type": "string" },
+        "trust_bundle": { "type": "string" },
+        "require_client_auth": { "type": "boolean", "default": true }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "required": ["cluster_id"],
+      "properties": {
+        "cluster_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "trust_mode": { "type": "string", "enum": ["ephemeral", "pinned", "private_ca"], "default": "ephemeral" },
+        "allowed_peer_fingerprints": { "type": "array", "items": { "type": "string" } },
+        "discovery_order": { "type": "array", "items": { "type": "string", "enum": ["mdns", "udp_broadcast", "bluetooth"] } },
+        "udp_port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 9001 },
+        "heartbeat_interval_ms": { "type": "integer", "minimum": 100, "default": 3000 },
+        "heartbeat_timeout_ms": { "type": "integer", "minimum": 500, "default": 10000 }
+      }
+    },
+    "profiler": {
+      "type": "object",
+      "properties": {
+        "validity_interval_ms": { "type": "integer", "default": 300000 },
+        "network_probe_interval_ms": { "type": "integer", "default": 5000 },
+        "benchmark_warmup_runs": { "type": "integer", "default": 3 },
+        "benchmark_measured_runs": { "type": "integer", "default": 10 }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "properties": {
+        "max_concurrent_requests": { "type": "integer", "default": 8 },
+        "max_activation_queue_size": { "type": "integer", "default": 64 },
+        "default_request_timeout_ms": { "type": "integer", "default": 60000 },
+        "recovery_token_retention": { "type": "integer", "default": 4096 }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "sample_rate": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.01 },
+        "export_directory": { "type": "string" }
+      }
+    }
+  }
+}

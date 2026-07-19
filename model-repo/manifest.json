@@ -1,0 +1,836 @@
+{
+  "models": [
+    {
+      "model_id": "qwen3-1.8b",
+      "family": "qwen3",
+      "display_name": "Qwen 3 1.8B",
+      "total_layers": 24,
+      "total_params": "1.8B",
+      "size_gb_int4": 1.5,
+      "size_gb_fp16": 3.6,
+      "context_window_max": 32768,
+      "default_context": 8192,
+      "tier": "comfortable",
+      "shards": [
+        {
+          "shard_id": "qwen3-1.8b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 1500000000,
+          "layers": [
+            0,
+            24
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kExecuTorchCpu"
+          ],
+          "artifact": {
+            "uri": "file:./Qwen2.5-1.5B-Instruct-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 1500000000
+          }
+        }
+      ],
+      "pipelines": {
+        "any_1node": {
+          "min_total_ram_gb": 4,
+          "min_devices": 1,
+          "stages": [
+            {
+              "layers": [
+                0,
+                24
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "1m2w_fair": {
+          "min_total_ram_gb": 12,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                6
+              ],
+              "min_ram_gb": 1,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                6,
+                16
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                16,
+                24
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "qwen3-4b",
+      "family": "qwen3",
+      "display_name": "Qwen 3 4B",
+      "total_layers": 36,
+      "total_params": "4B",
+      "size_gb_int4": 2.8,
+      "size_gb_fp16": 8.0,
+      "context_window_max": 16384,
+      "default_context": 4096,
+      "tier": "fair",
+      "shards": [
+        {
+          "shard_id": "qwen3-4b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 2800000000,
+          "layers": [
+            0,
+            36
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./Qwen2.5-3B-Instruct-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 2800000000
+          }
+        }
+      ],
+      "pipelines": {
+        "fair_2node": {
+          "min_total_ram_gb": 8,
+          "min_devices": 2,
+          "stages": [
+            {
+              "layers": [
+                0,
+                18
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                18,
+                36
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "fair_3node": {
+          "min_total_ram_gb": 16,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                12
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                12,
+                24
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                24,
+                36
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "1m2w_fair": {
+          "min_total_ram_gb": 16,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                8
+              ],
+              "min_ram_gb": 1,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                8,
+                22
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                22,
+                36
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "qwen3-6b",
+      "family": "qwen3",
+      "display_name": "Qwen 3 6B",
+      "total_layers": 40,
+      "total_params": "6B",
+      "size_gb_int4": 4.0,
+      "size_gb_fp16": 12.0,
+      "context_window_max": 8192,
+      "default_context": 4096,
+      "tier": "tight",
+      "shards": [
+        {
+          "shard_id": "qwen3-6b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 4200000000,
+          "layers": [
+            0,
+            40
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 4200000000
+          }
+        }
+      ],
+      "pipelines": {
+        "tight_3node": {
+          "min_total_ram_gb": 20,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                13
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                13,
+                27
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                27,
+                40
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "tight_4node": {
+          "min_total_ram_gb": 24,
+          "min_devices": 4,
+          "stages": [
+            {
+              "layers": [
+                0,
+                10
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                10,
+                20
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                20,
+                30
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                30,
+                40
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "1m2w_tight": {
+          "min_total_ram_gb": 20,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                10
+              ],
+              "min_ram_gb": 1,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                10,
+                25
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                25,
+                40
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "gemma12b",
+      "family": "gemma",
+      "display_name": "Gemma 12B",
+      "total_layers": 48,
+      "total_params": "12B",
+      "size_gb_int4": 7.0,
+      "size_gb_fp16": 24.0,
+      "context_window_max": 8192,
+      "default_context": 4096,
+      "tier": "medium",
+      "shards": [
+        {
+          "shard_id": "gemma12b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 7400000000,
+          "layers": [
+            0,
+            48
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./gemma-2-9b-it-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 7400000000
+          }
+        }
+      ],
+      "pipelines": {
+        "medium_3node": {
+          "min_total_ram_gb": 28,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                16
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                16,
+                32
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                32,
+                48
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "medium_4node": {
+          "min_total_ram_gb": 36,
+          "min_devices": 4,
+          "stages": [
+            {
+              "layers": [
+                0,
+                12
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                12,
+                24
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                24,
+                36
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                36,
+                48
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "1m2w_medium": {
+          "min_total_ram_gb": 28,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                12
+              ],
+              "min_ram_gb": 1,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                12,
+                30
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                30,
+                48
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "gemma26b",
+      "family": "gemma",
+      "display_name": "Gemma 26B",
+      "total_layers": 64,
+      "total_params": "26B",
+      "size_gb_int4": 15.0,
+      "size_gb_fp16": 52.0,
+      "context_window_max": 4096,
+      "default_context": 2048,
+      "tier": "tight",
+      "shards": [
+        {
+          "shard_id": "gemma26b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 15800000000,
+          "layers": [
+            0,
+            64
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./gemma-2-27b-it-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 15800000000
+          }
+        }
+      ],
+      "pipelines": {
+        "tight_4node": {
+          "min_total_ram_gb": 36,
+          "min_devices": 4,
+          "stages": [
+            {
+              "layers": [
+                0,
+                16
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                16,
+                32
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                32,
+                48
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                48,
+                64
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "llama3-8b",
+      "family": "llama3",
+      "display_name": "Llama 3 8B",
+      "total_layers": 32,
+      "total_params": "8B",
+      "size_gb_int4": 5.2,
+      "size_gb_fp16": 16.0,
+      "context_window_max": 8192,
+      "default_context": 4096,
+      "tier": "tight",
+      "shards": [
+        {
+          "shard_id": "llama3-8b-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 5200000000,
+          "layers": [
+            0,
+            32
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx"
+          ],
+          "artifact": {
+            "uri": "file:./Meta-Llama-3-8B-Instruct-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 5200000000
+          }
+        }
+      ],
+      "pipelines": {
+        "tight_3node": {
+          "min_total_ram_gb": 20,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                10
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                10,
+                21
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                21,
+                32
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "tight_4node": {
+          "min_total_ram_gb": 28,
+          "min_devices": 4,
+          "stages": [
+            {
+              "layers": [
+                0,
+                8
+              ],
+              "min_ram_gb": 1,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                8,
+                16
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                16,
+                24
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                24,
+                32
+              ],
+              "min_ram_gb": 2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        },
+        "1m2w_tight": {
+          "min_total_ram_gb": 20,
+          "min_devices": 3,
+          "stages": [
+            {
+              "layers": [
+                0,
+                8
+              ],
+              "min_ram_gb": 1,
+              "backend": "kMlx",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                8,
+                20
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            },
+            {
+              "layers": [
+                20,
+                32
+              ],
+              "min_ram_gb": 3,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "model_id": "socrates-debug-profiler",
+      "family": "debug",
+      "display_name": "Socrates Profiler (Debug)",
+      "total_layers": 4,
+      "total_params": "0.1B",
+      "size_gb_int4": 0.1,
+      "size_gb_fp16": 0.2,
+      "context_window_max": 512,
+      "default_context": 128,
+      "tier": "debug",
+      "description": "Lightweight profiler model. Runs inference while measuring GPU/NPU miss rate, CPU fallback, and per-stage latency. Use to benchmark cluster health.",
+      "shards": [
+        {
+          "shard_id": "socrates-profiler-int4",
+          "format": "gguf",
+          "quantization": "int4",
+          "file_bytes": 100000000,
+          "layers": [
+            0,
+            4
+          ],
+          "compatible_backends": [
+            "kLlamaCpp",
+            "kMlx",
+            "kExecuTorchQnn",
+            "kExecuTorchCpu"
+          ],
+          "artifact": {
+            "uri": "file:./Qwen2.5-0.5B-Instruct-Q4_K_M.gguf",
+            "sha256_hex": "",
+            "format": "gguf",
+            "format_version": "1",
+            "file_bytes": 100000000
+          }
+        }
+      ],
+      "pipelines": {
+        "debug_any": {
+          "min_total_ram_gb": 1,
+          "min_devices": 1,
+          "stages": [
+            {
+              "layers": [
+                0,
+                4
+              ],
+              "min_ram_gb": 0.2,
+              "backend": "kLlamaCpp",
+              "quantization": "int4"
+            }
+          ]
+        }
+      },
+      "profiling": {
+        "enabled": true,
+        "metrics": [
+          "gpu_miss_rate",
+          "npu_miss_rate",
+          "cpu_fallback_rate",
+          "per_stage_latency_us",
+          "per_machine_latency_us",
+          "kv_cache_hit_rate",
+          "network_transfer_bytes",
+          "peak_memory_per_device"
+        ]
+      }
+    }
+  ],
+  "cluster_configs": [
+    {
+      "name": "1m2w",
+      "devices": [
+        "mac_4gb",
+        "windows_16gb",
+        "windows_16gb"
+      ],
+      "total_ram_gb": 36,
+      "description": "1x Mac (4GB, MLX) + 2x Windows ThinkPad (16GB each, llama.cpp)"
+    },
+    {
+      "name": "1m1w",
+      "devices": [
+        "mac_4gb",
+        "windows_16gb"
+      ],
+      "total_ram_gb": 20,
+      "description": "1x Mac (4GB, MLX) + 1x Windows ThinkPad (16GB, llama.cpp)"
+    },
+    {
+      "name": "2w",
+      "devices": [
+        "windows_16gb",
+        "windows_16gb"
+      ],
+      "total_ram_gb": 32,
+      "description": "2x Windows ThinkPad (16GB each, llama.cpp)"
+    },
+    {
+      "name": "solo_mac",
+      "devices": [
+        "mac_4gb"
+      ],
+      "total_ram_gb": 4,
+      "description": "Mac only (4GB, MLX) \u2014 smallest models only"
+    }
+  ]
+}

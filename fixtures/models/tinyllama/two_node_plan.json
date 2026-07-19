@@ -1,0 +1,142 @@
+{
+  "planId": "tinyllama-v1-2node",
+  "modelId": "tinyllama-1.1b",
+  "manifestRevision": "1.0.0",
+  "fence": {
+    "term": 1,
+    "token": "leader-token-alpha",
+    "membershipRevision": 1
+  },
+  "stages": [
+    {
+      "ordinal": 0,
+      "nodeId": "node-alpha",
+      "shardId": "tinyllama-embed",
+      "stageIds": ["token-embedding"],
+      "stageKind": "tokenEmbedding",
+      "quantization": "fp16",
+      "backend": "llamaCpp",
+      "executionProfileId": "cpu-fp16",
+      "artifact": {
+        "uri": "file:./tinyllama-1.1b-embed.gguf",
+        "sha256": "abc123def456",
+        "format": "gguf",
+        "formatVersion": "3",
+        "fileBytes": 52428800
+      },
+      "reservedMemoryBytes": 52428800,
+      "estimatedStageMicroseconds": 500.0
+    },
+    {
+      "ordinal": 1,
+      "nodeId": "node-alpha",
+      "shardId": "tinyllama-layers-0-11",
+      "stageIds": ["transformer-layers-0-11"],
+      "stageKind": "transformerLayers",
+      "layers": {"start": 0, "endExclusive": 11},
+      "quantization": "int4",
+      "backend": "llamaCpp",
+      "executionProfileId": "cpu-int4",
+      "artifact": {
+        "uri": "file:./tinyllama-1.1b-layers-0-11.gguf",
+        "sha256": "def789abc012",
+        "format": "gguf",
+        "formatVersion": "3",
+        "fileBytes": 209715200
+      },
+      "reservedMemoryBytes": 209715200,
+      "estimatedStageMicroseconds": 1500.0
+    },
+    {
+      "ordinal": 2,
+      "nodeId": "node-beta",
+      "shardId": "tinyllama-layers-11-22",
+      "stageIds": ["transformer-layers-11-22"],
+      "stageKind": "transformerLayers",
+      "layers": {"start": 11, "endExclusive": 22},
+      "quantization": "int4",
+      "backend": "llamaCpp",
+      "executionProfileId": "cpu-int4",
+      "artifact": {
+        "uri": "file:./tinyllama-1.1b-layers-11-22.gguf",
+        "sha256": "ghi345jkl678",
+        "format": "gguf",
+        "formatVersion": "3",
+        "fileBytes": 209715200
+      },
+      "reservedMemoryBytes": 209715200,
+      "estimatedStageMicroseconds": 1500.0
+    },
+    {
+      "ordinal": 3,
+      "nodeId": "node-alpha",
+      "shardId": "tinyllama-output",
+      "stageIds": ["output-normalization", "lm-head"],
+      "stageKind": "outputNormalization",
+      "quantization": "fp16",
+      "backend": "llamaCpp",
+      "executionProfileId": "cpu-fp16",
+      "artifact": {
+        "uri": "file:./tinyllama-1.1b-output.gguf",
+        "sha256": "jkl901mno234",
+        "format": "gguf",
+        "formatVersion": "3",
+        "fileBytes": 52428800
+      },
+      "reservedMemoryBytes": 52428800,
+      "estimatedStageMicroseconds": 300.0
+    }
+  ],
+  "boundaries": [
+    {
+      "boundaryId": "embed-to-layers-0",
+      "producerStageId": "token-embedding",
+      "consumerStageId": "transformer-layers-0-11",
+      "tensors": [
+        {
+          "tensorId": "hidden_states",
+          "elementType": "float16",
+          "maximumShape": [1, 2048],
+          "layout": "rowMajor",
+          "maximumEncodedBytes": 4096
+        }
+      ],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    },
+    {
+      "boundaryId": "layers-11-to-layers-11-end",
+      "producerStageId": "transformer-layers-0-11",
+      "consumerStageId": "transformer-layers-11-22",
+      "tensors": [
+        {
+          "tensorId": "hidden_states",
+          "elementType": "float16",
+          "maximumShape": [1, 2048],
+          "layout": "rowMajor",
+          "maximumEncodedBytes": 4096
+        }
+      ],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    },
+    {
+      "boundaryId": "layers-end-to-output",
+      "producerStageId": "transformer-layers-11-22",
+      "consumerStageId": "output-normalization",
+      "tensors": [
+        {
+          "tensorId": "hidden_states",
+          "elementType": "float16",
+          "maximumShape": [1, 2048],
+          "layout": "rowMajor",
+          "maximumEncodedBytes": 4096
+        }
+      ],
+      "transferable": true,
+      "reliableOrderedRequired": true
+    }
+  ],
+  "issuedAtUtc": "2026-07-19T00:00:00Z",
+  "validForMs": 300000
+}

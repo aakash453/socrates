@@ -1,0 +1,30 @@
+{
+  "model_id": "tinyllama",
+  "hardware": "macOS Apple M3 16GB",
+  "baselines": [
+    {
+      "quantization": "q4_k_m",
+      "backend": "llama-cpp-metal",
+      "min_prefill_tps": 50,
+      "min_decode_tps": 15,
+      "max_first_token_latency_us": 500000,
+      "max_peak_memory_bytes": 2500000000
+    },
+    {
+      "quantization": "fp16",
+      "backend": "llama-cpp-metal",
+      "min_prefill_tps": 30,
+      "min_decode_tps": 8,
+      "max_first_token_latency_us": 800000,
+      "max_peak_memory_bytes": 4500000000
+    },
+    {
+      "quantization": "q8_0",
+      "backend": "llama-cpp-metal",
+      "min_prefill_tps": 40,
+      "min_decode_tps": 12,
+      "max_first_token_latency_us": 600000,
+      "max_peak_memory_bytes": 3500000000
+    }
+  ]
+}

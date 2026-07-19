@@ -1,0 +1,1 @@
+target_sources(socrates PRIVATE sqlite_assignment_store.cpp)

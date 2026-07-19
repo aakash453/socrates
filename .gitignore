@@ -1,0 +1,31 @@
+# EdgeAI .gitignore
+build/
+.conan2/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+*.swo
+*.o
+*.a
+*.so
+*.dylib
+*.xcframework/
+*.aar
+*.apk
+*.egg-info/
+logs/
+.commandcode/
+generated/
+*.pb.h
+*.pb.cc
+
+# Gradle
+.gradle/
+gradlew
+gradlew.bat
+local.properties
+**/build/
+platform/android/.cxx/
+!dist/android-arm64/app-debug.apk

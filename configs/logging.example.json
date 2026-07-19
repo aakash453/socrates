@@ -1,0 +1,33 @@
+{
+  "level": "info",
+  "pattern": "[%Y-%m-%dT%H:%M:%S.%fZ] [%^%l%$] [%n] %v",
+  "sinks": [
+    {
+      "type": "stderr",
+      "level": "info"
+    },
+    {
+      "type": "file",
+      "path": "logs/socrates.log",
+      "level": "trace",
+      "max_size_mb": 50,
+      "max_files": 5
+    }
+  ],
+  "subsystems": {
+    "discovery": "debug",
+    "membership": "info",
+    "election": "info",
+    "scheduler": "info",
+    "transport": "debug",
+    "backend": "info",
+    "pipeline": "info",
+    "trace": "info"
+  },
+  "trace": {
+    "enabled": false,
+    "sample_rate": 0.01,
+    "export_format": "protobuf",
+    "max_spans_per_trace": 1000
+  }
+}

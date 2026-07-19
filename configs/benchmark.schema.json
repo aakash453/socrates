@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://socrates.multiverse.dev/benchmark.schema.json",
+  "title": "Socrates Benchmark Report",
+  "type": "object",
+  "required": ["benchmark_id", "model_id", "backend", "hardware"],
+  "properties": {
+    "benchmark_id": { "type": "string" },
+    "model_id": { "type": "string" },
+    "manifest_id": { "type": "string" },
+    "manifest_revision": { "type": "string" },
+    "backend": { "type": "string" },
+    "backend_version": { "type": "string" },
+    "quantization": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string" },
+        "scheme": { "type": "string" },
+        "group_size": { "type": "integer" }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "properties": {
+        "cpu_model": { "type": "string" },
+        "logical_cpu_count": { "type": "integer" },
+        "total_memory_bytes": { "type": "integer" },
+        "accelerators": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "warmup_runs": { "type": "integer", "minimum": 0 },
+    "measured_runs": { "type": "integer", "minimum": 1 },
+    "results": {
+      "type": "object",
+      "required": ["prefill_tokens_per_second", "decode_tokens_per_second"],
+      "properties": {
+        "prefill_tokens_per_second": { "type": "number", "minimum": 0 },
+        "decode_tokens_per_second": { "type": "number", "minimum": 0 },
+        "first_token_latency_microseconds": { "type": "integer", "minimum": 0 },
+        "peak_memory_bytes": { "type": "integer", "minimum": 0 },
+        "sequence_length": { "type": "integer", "minimum": 0 },
+        "total_duration_microseconds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ran_at_utc": { "type": "string", "format": "date-time" }
+  }
+}

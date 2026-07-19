@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package socrates.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ── Trace ────────────────────────────────────────────────────────────────────
+
+message Trace {
+  string trace_id = 1;
+  string request_id = 2;
+  string plan_id = 3;
+  string model_id = 4;
+  uint64 leader_term = 5;
+  uint64 membership_revision = 6;
+  repeated TraceSpan spans = 7;
+  TraceMetadata metadata = 8;
+}
+
+message TraceSpan {
+  string span_id = 1;
+  string parent_span_id = 2;
+  string name = 3;
+  TraceKind kind = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  repeated TraceAttribute attributes = 7;
+  repeated TraceEvent events = 8;
+  TraceStatus status = 9;
+}
+
+enum TraceKind {
+  TRACE_KIND_UNSPECIFIED = 0;
+  TRACE_KIND_SCHEDULING = 1;
+  TRACE_KIND_LAYER_EXECUTION = 2;
+  TRACE_KIND_TRANSFER = 3;
+  TRACE_KIND_TOKEN_EVENT = 4;
+}
+
+message TraceAttribute {
+  string key = 1;
+  TraceAttributeValue value = 2;
+}
+
+message TraceAttributeValue {
+  oneof value {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+  }
+}
+
+message TraceEvent {
+  string name = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  repeated TraceAttribute attributes = 3;
+}
+
+message TraceStatus {
+  enum Code {
+    CODE_UNSPECIFIED = 0;
+    CODE_OK = 1;
+    CODE_ERROR = 2;
+  }
+  Code code = 1;
+  string message = 2;
+}
+
+// ── Metadata ─────────────────────────────────────────────────────────────────
+
+message TraceMetadata {
+  string runtime_version = 1;
+  string host_node_id = 2;
+  string platform = 3;
+  string arch = 4;
+  uint64 total_spans = 5;
+  uint64 total_events = 6;
+  uint64 duration_micros = 7;
+}
+
+// ── Export format ────────────────────────────────────────────────────────────
+
+message TraceExport {
+  repeated Trace traces = 1;
+  google.protobuf.Timestamp exported_at = 2;
+  bytes export_sha256 = 3;
+}
