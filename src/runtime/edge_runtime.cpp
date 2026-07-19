@@ -161,7 +161,7 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
     static InMemoryTermStore term_store;
 
     election_->start(local_identity_.node_id, config_.cluster_id, term_store,
-        [this](const cluster::LeadershipState& ls) {
+        [](const cluster::LeadershipState& ls) {
           auto log = make_log_context("runtime");
           if (ls.leader_id.has_value()) {
             log.with_node_id(*ls.leader_id)
@@ -170,9 +170,9 @@ class EdgeRuntimeImpl final : public EdgeRuntime {
 
             // Compare directly with ls parameter, not is_local_leader()
             // which would call election_->current() — deadlock inside callback.
-            if (ls.leader_id->value == local_identity_.node_id.value) {
-              schedule_plan();
-            }
+            // schedule_plan() is also NOT called here because it too calls
+            // election_->current() while the election mutex is held.
+            // The plan will be scheduled by join_cluster() after this returns.
           }
         });
     log.info("election started");

@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
   if (err.code != 0) { printf("Start failed\n"); return 1; }
 
   printf("Runtime started as master.\n");
-  // socrates_join_cluster(g_rt);  // TODO: fix deadlock, then re-enable
+  socrates_join_cluster(g_rt);
 
   // Start HTTP server (blocks until shutdown)
   http_server();
