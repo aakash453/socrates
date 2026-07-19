@@ -1007,15 +1007,18 @@ class InferencePipelineImpl final : public InferencePipeline {
 
   void run_generation(std::shared_ptr<ActiveRequest> state,
                       std::shared_ptr<CancellationToken> cancel_token) {
-#if SOCRATES_HAS_LLAMA_CPP
-    run_generation_local(state, cancel_token);
-#else
-    if (has_distributed_capability()) {
+    // Use distributed path when transport is available AND plan has multiple stages
+    if (has_distributed_capability() && state->plan.stages.size() > 1) {
       run_generation_distributed(state, cancel_token);
-    } else {
-      run_generation_simulated(state, cancel_token);
+    }
+#if SOCRATES_HAS_LLAMA_CPP
+    else if (state->plan.stages.size() == 1) {
+      run_generation_local(state, cancel_token);
     }
 #endif
+    else {
+      run_generation_simulated(state, cancel_token);
+    }
   }
 
   // ── Members ───────────────────────────────────────────────────────────
